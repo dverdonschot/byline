@@ -1,8 +1,8 @@
 # Longform — Complete Build Specification
 
-**Version:** 0.3-draft
+**Version:** 0.4-draft
 **Last updated:** 2026-04-13
-**Status:** Planning — waiting on Dennis to review feature completeness
+**Status:** Planning — frontend architecture confirmed (direct browser relay queries)
 
 ---
 
@@ -849,9 +849,9 @@ interface Toast {
 
 | # | Question | Options | Status |
 |---|----------|---------|--------|
+| 0 | **Relay query architecture** | Direct from browser (no backend) vs via backend | ✅ **Direct from browser — confirmed** |
 | 1 | **Markdown editor** | Textarea-based (simple) or CodeMirror/Monaco (rich) | Textarea for MVP |
 | 2 | **Image hosting** | External URL only for MVP? Or upload to nostr.build? | External URL only for MVP |
 | 3 | **Read time estimate** | 200 wpm or 250 wpm? | 200 wpm (default for long-form) |
 | 4 | **Pagination** | Offset-based or cursor-based (faster) | Offset for MVP |
 | 5 | **Article content in Postgres** | Full content or just metadata? | Full content (for search) |
-| 6
