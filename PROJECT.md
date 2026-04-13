@@ -1,6 +1,6 @@
-# Byline — Project Overview
+# Longform — Project Overview
 
-## What is Byline?
+## What is Longform?
 A long-form blogging platform built on the Nostr protocol. Writers publish markdown stories to the Nostr network, readers discover content via topic tags. Lightning Network enables readers to zap (tip) authors directly.
 
 ## Why Nostr?
@@ -17,6 +17,11 @@ A long-form blogging platform built on the Nostr protocol. Writers publish markd
 - **Lightning-native** — payments are a core feature, not an afterthought
 - **Federated by design** — one tag = one blog; anyone can fork a tag and build their own front-end
 
+## Platform Variants
+1. **Longform (core)** — general long-form blogging, any topic
+2. **Daybook** — personal diary / daybook variant aimed at teens (different safety model, guardian visibility)
+3. **Per-topic forks** — any organization can spin up a topic-tag-based blog network under a different tag namespace
+
 ## High-Level Architecture Layers
 
 ```
@@ -29,33 +34,28 @@ A long-form blogging platform built on the Nostr protocol. Writers publish markd
 ├─────────────────────────────────────────────┤
 │  Relay Network (public + optional private)  │
 ├─────────────────────────────────────────────┤
-│  Byline Front-end (web app)                 │
-│  → Filter by tag → render markdown → zap    │
+│  Longform Front-end (web app)              │
+│  → Filter by tag → render markdown → zap   │
 ├─────────────────────────────────────────────┤
-│  Lightning Layer (LNURL / Lightning Address)│
-│  → Zap reactions (NIP-57)                   │
+│  Lightning Layer (LNURL / Lightning Address) │
+│  → Zap reactions (NIP-57)                 │
 └─────────────────────────────────────────────┘
 ```
 
-## Platform Variants
-1. **Byline (core)** — general long-form blogging, any topic
-2. **Daybook** — personal diary / daybook variant aimed at teens (different safety model, guardian visibility)
-3. **Per-topic forks** — any organization can spin up a topic-tag-based blog network under a different tag namespace
-
 ## Project Status
-- **Phase:** Research & project definition
-- **Current step:** 10 foundation questions being defined (2026-04-13)
-- **Next:** Research Nostr NIPs, tooling, relay options, Lightning integration
+- **Phase:** Research complete, architecture defined
+- **Current step:** Waiting on domain check (Dennis), then move to build
+- **Next:** Docker setup, tech stack (Vite + Deno), MVP build
+- **Confirmed:** Name=Longform, Tech=Vite+Deno, MVP=Docker self-hosted, Auth=Alby+Nostr keys
 
 ## Folder Structure
 ```
-byline/
+longform/
 ├── PROJECT.md          ← you are here
-├── agent.md            ← agent instructions for this project
-├── questions.md        ← 10 foundation questions + answers (living doc)
+├── SPEC.md             ← full technical specification
+├── agent.md            ← research agent instructions
+├── questions.md        ← 10 foundation questions + answers
+├── next-questions.md   ← 10 phase-2 questions (answers in SPEC.md)
 ├── research/           ← research notes, tool evaluations
-│   ├── nostr-nips.md
-│   ├── lightning.md
-│   └── tooling.md
-└── SPEC.md             ← project spec (filled after questions answered)
+└── SPEC.md             ← project spec
 ```

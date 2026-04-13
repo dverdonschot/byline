@@ -8,29 +8,18 @@
 
 ## 1. Overview
 
-**Project name:** TBD — awaiting Dennis selection from options below
+**Project name:** Longform
 **Type:** Long-form blogging platform on Nostr
 **Core function:** Writers publish markdown stories to the Nostr network; readers discover and read them via a web interface with Lightning Network zaps.
 
 **One-liner:** Long-form stories on Nostr, with Lightning-powered appreciation.
 
-### Name Options (NQ10 — ready for Dennis review)
+**Confirmed (2026-04-13):**
+- Name: **Longform** ✅
+- Logo direction: **Direction 3** — single pen stroke with fork, charcoal on white, pen nib + signal pulse combined ✅
+- Name choice reason: descriptive, no-nonsense, fits Nostr landscape
 
-| # | Name | Character | Status |
-|---|------|-----------|--------|
-| 1 | **Byline** | Journalist term, author-facing, clean and professional | Working title |
-| 2 | **Inkwell** | Writing tool, premium editorial feel | Option |
-| 3 | **Folio** | Classic publishing term (page/sheet) | Option |
-| 4 | **Parchment** | Old-world writing surface, warm and literary | Option |
-| 5 | **Longform** | Descriptive, no-nonsense | Option |
-| 6 | **Draft** | The thing a writer produces, iterative and accessible | Option |
-
-**Logo concepts generated (2026-04-13):**
-- Concept 1: lowercase "b" with lightning bolt in bowl — premium editorial
-- Concept 2: quill tip with ink drop — classic stationery feel
-- Concept 3: single pen stroke with fork — signal + pen combined
-
-Dennis to choose a name → update all project docs with chosen name (tag namespace, repo name, etc.)
+**Domain:** Dennis to check availability at instantdomainsearch.com
 
 ---
 
@@ -63,8 +52,8 @@ Byline is built entirely on open Nostr NIPs. We follow, not fork.
     ["d", "article-slug"],
     ["title", "Article Title"],
     ["published_at", "1699999999"],
-    ["t", "byline"],
-    ["t", "byline/username"],
+    ["t", "longform"],
+    ["t", "longform/username"],
     ["t", "topic"],
     ["image", "https://..."],
     ["summary", "..."]
@@ -98,14 +87,10 @@ Byline is built entirely on open Nostr NIPs. We follow, not fork.
 ## 4. Discovery & Tagging
 
 ### Discovery Tag
-**TBD** — the tag that marks all Byline content for discovery.
-- Working default: `byline`
-- Authors MUST include this tag on all published articles
-- Filtered pages query for kind 30023 + discovery tag
-
-### Sub-tags (per-author, per-topic)
-- `byline/<username>` — author's blog stream
-- `byline/<topic>` — topic streams (e.g., `byline/cooking`)
+**`longform`** — the tag that marks all Longform content for discovery.
+- Authors MUST include `longform` tag on all published articles
+- Filtered pages query for kind 30023 + `longform` tag
+- Sub-tags: `longform/<username>` (author stream), `longform/<topic>` (topic stream)
 - Standard Nostr `t` tags for cross-topic discovery
 
 ### Front Page
@@ -159,11 +144,11 @@ Byline → window.webln (Alby) → author's lnurl server → Lightning Network
 
 ## 6. Authentication & Identity
 
-### Login Flow (Primary: Alby)
-1. User clicks "Connect with Alby"
-2. Byline calls `window.alby.enable()` — Alby popup opens
-3. Alby returns: `{ nostrPubkey, walletBalance, lnurl }`
-4. Byline uses `window.nostr.signEvent()` when publishing articles
+### Login Flow (Primary: Alby or Nostr Key)
+1. User clicks "Connect with Alby" or "Login with Nostr key"
+2. **Alby path:** `window.alby.enable()` → returns `{ nostrPubkey, walletBalance, lnurl }` → Alby popup handles signing
+3. **Nostr key path:** `window.nostr.signEvent()` via nos2x/Alby extension, or in-browser keygen as fallback
+4. Both paths use NIP-07 signing — private key never touches Byline servers
 5. Private key never touches Byline servers
 
 ### Login Flow (Fallback)
@@ -183,19 +168,17 @@ Byline → window.webln (Alby) → author's lnurl server → Lightning Network
 
 ## 7. Tech Stack
 
-### Decision: **TBD — NQ1 open**
+### Decision: **Option D — Vite + Deno** ✅ CONFIRMED
 
-| Layer | Option A | Option B | Option C | Option D |
-|-------|----------|----------|----------|----------|
-| Frontend | SvelteKit | Next.js 14 | Vite + Solid | Vite + React |
-| Backend | SvelteKit SSR | Next.js API | Deno server | Deno server |
-| Nostr lib | nostr-tools | NDK | nostr-tools | deno-nostr |
-| Database | SQLite | Postgres | Deno KV / Postgres | Deno KV / Postgres |
-| Deployment | VPS / Pi | Vercel / VPS | Deno Deploy / VPS | Deno Deploy / VPS |
+| Layer | Choice |
+|-------|--------|
+| Frontend build | Vite + TypeScript |
+| Backend runtime | Deno |
+| Nostr lib | deno-nostr (or nostr-tools via compatibility layer) |
+| Database | Postgres (via Deno Postgres driver) or Deno KV |
+| Deployment | Deno Deploy or VPS |
 
-**Recommended by Clawd:** Option B (Next.js + NDK + Postgres) — best SEO, largest ecosystem.
-**Dennis flagged:** Option D (Vite + Deno) — pending Dennis's elaboration.
-**Awaiting:** Dennis's tech stack decision.
+**Why Vite + Deno:** Vite works well with TypeScript; Deno has multiple deploy/runtime options (Deno Deploy, VPS, Docker). Clean, modern, secure by default.
 
 ### Postgres Schema (What Nostr Can't Store)
 
@@ -238,7 +221,7 @@ CREATE TABLE mod_queue (
   reviewed_at TIMESTAMPTZ
 );
 
--- Byline config (per-deployment)
+-- Longform config (per-deployment)
 CREATE TABLE config (
   key TEXT PRIMARY KEY,
   value JSONB
@@ -254,18 +237,18 @@ CREATE TABLE config (
 ```yaml
 services:
   app:
-    image: byline/app
+    image: longform/app
     ports: ["3000:3000"]
     env_file: .env
     depends_on: [db]
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: byline
+      POSTGRES_DB: longform
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes: [pgdata:/var/lib/postgresql/data]
   relay:
-    image: byline/relay  # nostr-rs-relay
+    image: longform/relay  # nostr-rs-relay
     ports: ["8080:8080"]
     volumes: [/data/relay:/data]
 volumes:
@@ -276,17 +259,17 @@ volumes:
 
 ```env
 # Tag namespace — self-hosters can set their own
-BYLINE_TAG=byline
-BYLINE_TAG_PREFIX=byline
+LONGFORM_TAG=longform
+LONGFORM_TAG_PREFIX=longform
 
 # Database
-DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/byline
+DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/longform
 
 # Relay (optional — for self-hosted relay)
 RELAY_URL=wss://relay.yourdomain.com
 
 # Lightning (for zap splits)
-BYLINE_LIGHTNING_ADDRESS=byline@yourdomain.com
+LONGFORM_LIGHTNING_ADDRESS=longform@yourdomain.com
 ZAP_SPLIT_AUTHOR=95
 ZAP_SPLIT_PLATFORM=5
 ```
@@ -318,27 +301,20 @@ ZAP_SPLIT_PLATFORM=5
 
 ## 10. MVP Scope
 
-**TBD — awaiting Dennis's answer on NQ7**
+**CONFIRMED — Docker self-hosted for MVP ✅**
 
-Questions that gate MVP definition:
-- [x] NQ3: Free speech ✅
-- [x] NQ5: Latest-only + imports + delete ✅
-- [x] NQ8: Alby login + prompt to write ✅
-- [x] NQ9: Small zap split ✅
-- [ ] **NQ7: MVP feature set** — Dennis: is self-hosted Docker a hard MVP requirement?
-- [ ] **NQ1: Tech stack** — pending Dennis decision
-- [ ] **NQ2/NQ10: Name** — pending Dennis decision
-
-**Likely MVP features (assuming NQ7 answer):**
+**Confirmed MVP features:**
 - Web reader: front-page + filter page + article view
-- Alby login / in-browser keygen
+- Alby login + Nostr key login (both primary)
 - Markdown article creation + publishing to Nostr (kind 30023)
 - Zap button (Alby WebLN)
-- Docker self-hosted deployment
-- Postgres for caching/acceleration
+- Docker self-hosted deployment (Docker Compose)
+- Postgres for caching/acceleration layer
+- Import posts via paste markdown
+- Delete via Nostr kind 5
 
 **Deferred to v2:**
-- Lightning zap split configuration
+- Lightning zap split configuration (platform cut)
 - Featured page AI moderation
 - Import from URL
 - NIP-46 delegated signing
@@ -362,14 +338,18 @@ TBD specifics (NQ6 deferred):
 
 | Question | Status | Owner |
 |----------|--------|-------|
-| NQ1: Tech stack | **OPEN** | Dennis to decide |
-| NQ2: Discovery tag | **OPEN** | Dennis to decide |
-| NQ4: Featured page curation | **OPEN** | Defer |
-| NQ6: Daybook specifics | **OPEN** | Defer |
-| NQ7: MVP scope | **OPEN** | Dennis to decide |
-| NQ2/NQ10: Name | **OPEN — 6 options ready for review** | Dennis to choose |
-| Zap split implementation details | **OPEN** | Defer |
-| Alby split configuration | **OPEN** | Defer |
+| NQ1: Tech stack | ✅ **CONFIRMED — Vite + Deno** | Done |
+| NQ2/NQ10: Name | ✅ **CONFIRMED — Longform** | Done |
+| NQ7: MVP scope | ✅ **CONFIRMED — Docker self-hosted MVP** | Done |
+| NQ3: Free speech | ✅ Confirmed |
+| NQ5: Latest-only + imports + delete | ✅ Confirmed |
+| NQ8: Alby + Nostr key login | ✅ Confirmed |
+| NQ9: Small zap split | ✅ Confirmed |
+| NQ4: Featured page curation | OPEN — defer |
+| NQ6: Daybook specifics | OPEN — defer |
+| Domain availability | OPEN — Dennis to check |
+| Discovery tag | ✅ Confirmed — `longform` |
+| Zap split implementation | OPEN — defer |
 
 ---
 

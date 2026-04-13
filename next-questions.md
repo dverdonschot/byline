@@ -6,32 +6,15 @@ These emerge from the foundational research. Once answered, we can write SPEC.md
 
 ## NQ1: What is the tech stack decision?
 
-We have 4 options now. Dennis flagged Vite + Deno as interesting.
+**CONFIRMED: Option D — Vite + Deno ✅**
 
-| | Option A | Option B (rec) | Option C | Option D (NEW) |
-|-|----------|----------------|----------|----------------|
-| Frontend | SvelteKit | Next.js 14 | Bun + Hono | Vite + React/Solid |
-| Backend | SvelteKit SSR | Next.js API | Bun server | Deno |
-| Nostr lib | nostr-tools | NDK | nostr-tools | deno-nostr |
-| Database | SQLite | Postgres | SQLite/Turso | Deno KV or Postgres |
-| Deployment | VPS/Pi | Vercel/VPS | Edge/VPS | Deno Deploy/VPS |
-| Strength | Lightweight | SEO+ecosystem | Fastest edge | Modern, secure |
-
-Dennis, tell me more about what draws you to Vite + Deno? I can research this specific combo if you want.
+Dennis: Vite works well with TypeScript, Deno has multiple deploy/runtime options. No further elaboration needed.
 
 ---
 
-## NQ2: What is the dedicated Byline tag?
+## NQ2: What is the dedicated Longform tag?
 
-The discovery tag that marks all Byline content. Options:
-- `byline` — clean, obvious, easy to search
-- `longform` — broader, not Byline-specific
-- `blog` — generic, competitive
-- `nostr-blog` — descriptive but long
-
-Also: do we use namespaced sub-tags? (`byline/dennis`, `byline/cooking`) or flat? (`dennis`, `cooking`)
-
-**STATUS:** [OPEN] — Dennis wants a task to create a name. Generating logo concepts and name options now.
+**CONFIRMED: `longform` ✅** — Discovery tag is `longform`. Sub-tags: `longform/<username>`, `longform/<topic>`.
 
 ---
 
@@ -64,14 +47,7 @@ Also: do we use namespaced sub-tags? (`byline/dennis`, `byline/cooking`) or flat
 
 ## NQ7: What is the MVP feature set?
 
-**STATUS:** [OPEN] — Needs Dennis input.
-- Is the MVP hosted Byline only, or self-hosted Docker too?
-- Does MVP include Lightning/zaps, or is that v2?
-- Does MVP include Daybook?
-- What is the minimum viable discovery? (Just front page with search? A filter page?)
-- Does MVP include an editor, or do users paste markdown?
-
-Dennis said self-hosted is important for Byline to work — does this mean self-hosted Docker is MVP requirement?
+**CONFIRMED: Docker self-hosted for MVP ✅** — Dennis wants to deploy his own public version. Self-hosted Docker is the primary deployment target.
 
 ---
 
@@ -93,22 +69,11 @@ Dennis said self-hosted is important for Byline to work — does this mean self-
 
 ## NQ10: What is the brand and name?
 
-**STATUS:** [OPEN] — Dennis wants to check names. Generating name options and logo concepts.
+**CONFIRMED: Longform ✅**
 
-**Name options generated (2026-04-13):**
-1. **Byline** — working title, journalist term, author-facing, clean
-2. **Inkwell** — writing tool, premium, editorial feel
-3. **Folio** — page/sheet of paper, classic publishing term
-4. **Parchment** — old-world writing surface, warm, literary
-5. **Longform** — descriptive, no-nonsense
-6. **Draft** — the thing a writer produces, iterative, accessible
-
-**Logo concepts generated:**
-- Logo 1: lowercase "b" with lightning bolt in bowl — premium editorial
-- Logo 2: quill tip with ink drop — classic stationery feel
-- Logo 3: single pen stroke with fork — signal + pen combined
-
-Dennis to choose from options or pick a direction.
+Dennis: "I like the name Longform. What would be a good URL that is available and fits into the nostr landscape?"
+- Domain: Dennis to check availability (instantdomainsearch.com)
+- Logo: Direction 3 (pen stroke + fork) ✅ — Dennis confirmed
 
 ---
 
