@@ -199,12 +199,14 @@ Images: external URLs via NIP-94. Markdown: marked.js (fast) or unified/remark (
 
 **Why it matters:** The teen variant (Daybook) has real safety implications. We need a clear model before building anything.
 
-**Status:** [RESEARCHING]
+**Status:** [CONFIRMED — framework clear, Daybook decisions needed]
 
 **Dennis says:**
 - For the featured page, AI reads the stories for moderation
 - Not every searchable thing needs to be scanned — focus on featured content
 - Research EU law compliance (DSA, GDPR, age-appropriate design) without over-burdening the platform
+
+**Answer:** Nostr has NIP-51 mute/block lists (kind 30000+), client-side only. Relays can filter too. For Byline's featured page: AI reads stories before featuring, reports handled via in-app form. EU DSA: notice-and-takedown mechanism needed (even a simple email form counts for small platforms), statement of reasons if content removed, appeal path. GDPR: applies to user data/payments. Daybook: age verification + NIP-44 encryption for family-only posts. Guardian gets family-view via authorized npub. Key gaps to decide: content policy (NSFW?), who handles Daybook reports, jurisdiction. See `research/moderation-safety.md`.
 
 ---
 
@@ -245,9 +247,11 @@ Images: external URLs via NIP-94. Markdown: marked.js (fast) or unified/remark (
 
 **Why it matters:** If launching a Byline blog is too complex, the network effect won't happen. We need the bar to be low.
 
-**Status:** [UNCONFIRMED] — needs research
+**Status:** [CONFIRMED]
 
-**Dennis says:** Same as Q9 — research 3 tech stack options
+**Dennis says:** Docker spin-up with configurable tags. Hosted version on VPS with Postgres for state Nostr can't store. Alby for automatic login with Nostr. Users login to website, browse front-page/search, and create stories via Byline or link external blog stories to Nostr via Byline.
+
+**Answer:** Docker-compose for self-hosters (Byline app + nostr-rs-relay + Postgres + Nginx). .env sets tag namespace (e.g., `byline_cooking` instead of `byline`). Non-technical writers use Byline as a website (like WordPress) — no dev skills needed. Alby NIP-07 (`window.nostr`) gives seamless login + Lightning in one popup. VPS: 2GB RAM minimum, ~€5-10/month. Instances federate automatically since all publish to the same public relays. Reference implementations: Habla News and YakiHonne. Postgres stores: sessions, article cache, moderation queue, zap totals. See `research/developer-experience.md` and `research/alby-integration.md`.
 
 ---
 
