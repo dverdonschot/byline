@@ -6,17 +6,18 @@ These emerge from the foundational research. Once answered, we can write SPEC.md
 
 ## NQ1: What is the tech stack decision?
 
-We have 3 options. Dennis needs to choose.
+We have 4 options now. Dennis flagged Vite + Deno as interesting.
 
-| | Option A | Option B (recommended) | Option C |
-|-|----------|------------------------|----------|
-| Framework | SvelteKit | Next.js 14 | Bun + Hono |
-| Nostr lib | nostr-tools | NDK | nostr-tools |
-| Database | SQLite | Postgres | SQLite/Turso |
-| Deployment | VPS / Pi | Vercel / VPS | Edge / VPS |
-| Strength | Lightweight, cheap | Best SEO + ecosystem | Fastest, edge-native |
+| | Option A | Option B (rec) | Option C | Option D (NEW) |
+|-|----------|----------------|----------|----------------|
+| Frontend | SvelteKit | Next.js 14 | Bun + Hono | Vite + React/Solid |
+| Backend | SvelteKit SSR | Next.js API | Bun server | Deno |
+| Nostr lib | nostr-tools | NDK | nostr-tools | deno-nostr |
+| Database | SQLite | Postgres | SQLite/Turso | Deno KV or Postgres |
+| Deployment | VPS/Pi | Vercel/VPS | Edge/VPS | Deno Deploy/VPS |
+| Strength | Lightweight | SEO+ecosystem | Fastest edge | Modern, secure |
 
-Dennis, which do you prefer?
+Dennis, tell me more about what draws you to Vite + Deno? I can research this specific combo if you want.
 
 ---
 
@@ -30,90 +31,84 @@ The discovery tag that marks all Byline content. Options:
 
 Also: do we use namespaced sub-tags? (`byline/dennis`, `byline/cooking`) or flat? (`dennis`, `cooking`)
 
+**STATUS:** [OPEN] — Dennis wants a task to create a name. Generating logo concepts and name options now.
+
 ---
 
 ## NQ3: What is the content policy?
 
-For the featured page AI moderation + EU DSA compliance, we need a clear policy:
-- Is NSFW / adult content allowed on Byline?
-- What about political content, medical misinformation, copyrighted content?
-- What triggers removal from the featured page vs the platform entirely?
-- Is this a curated platform (Byline chooses what stays) or open (Nostr-level free speech)?
+**STATUS:** [CONFIRMED] — Nostr-level free speech for now. No restrictions beyond what Nostr already does.
 
 ---
 
 ## NQ4: How does the featured page curation work?
 
-Dennis mentioned AI reads stories for the featured page. Questions:
-- What AI? (Local model? API? Human review?)
-- What criteria? (Quality? Freshness? Zap count?)
-- Is being on the featured page opt-in or automatic?
-- Who decides what "featured" means?
-- Can anyone appear on featured, or is it exclusive?
+**STATUS:** [OPEN] — Decide later.
 
 ---
 
 ## NQ5: What does the write/edit/delete UX look like?
 
-We follow NIP-23 (editing creates a new event). Questions:
-- Does Byline have its own Markdown editor (built-in)?
-- Or does Byline accept markdown from any source?
-- If editing creates a new event, does Byline automatically show only the latest version?
-- Does Byline handle deletion requests? (NIP-23 doesn't have native delete — it creates a delete event)
-- Can users import their existing blog posts? (Paste markdown? Import from URL?)
+**STATUS:** [CONFIRMED]
+- Latest version shown only (NIP-23 creates new event on edit, Byline filters to latest)
+- Import existing posts: paste markdown or import from URL
+- Delete: yes, if Nostr supports it (NIP-23 delete creates a delete event kind 5)
 
 ---
 
 ## NQ6: How does the Daybook teen-variant work?
 
-We know the broad strokes. Need specific decisions:
-- Separate app (`daybook.so`) or same app with mode switch (`byline.com/daybook`)?
-- Age verification: selfie + ID (SumSub) or parental consent email flow?
-- Guardian visibility: how does the guardian connect? (Nostr npub invite? QR code?)
-- Is Daybook free or paid? (If paid, who pays — guardian or teen?)
-- Jurisdiction: which country's laws apply for teen users globally?
+**STATUS:** [PARTIAL] — Self-hosted Docker configuration is important. Age verification, guardian visibility, and other specifics deferred.
 
 ---
 
 ## NQ7: What is the MVP feature set?
 
-We need to scope for the first release. Questions:
+**STATUS:** [OPEN] — Needs Dennis input.
 - Is the MVP hosted Byline only, or self-hosted Docker too?
 - Does MVP include Lightning/zaps, or is that v2?
 - Does MVP include Daybook?
-- What is the minimum viable discovery? (Just the front page with search? A filter page?)
+- What is the minimum viable discovery? (Just front page with search? A filter page?)
 - Does MVP include an editor, or do users paste markdown?
+
+Dennis said self-hosted is important for Byline to work — does this mean self-hosted Docker is MVP requirement?
 
 ---
 
 ## NQ8: How does the Alby login flow work exactly?
 
-We know the tech. Need UX decisions:
-- First visit: "Connect with Alby" button prominently shown?
-- If user has no Alby: fallback to "Create with Nostr key" (in-browser) or "I have nos2x"?
-- Is Alby account creation part of Byline's onboarding flow?
-- After login: what does the user see? (Empty feed? Prompt to write first story?)
-- Profile: where does name/picture come from? (From Nostr kind-0 profile, editable?)
+**STATUS:** [CONFIRMED]
+- "Connect with Alby" button as primary login
+- No Alby → "Create Nostr key" (in-browser) or "I have nos2x"
+- Profile name/picture: from Nostr kind-0 profile, editable in Byline
+- Post-login: prompt to write + front-page
 
 ---
 
 ## NQ9: What is the monetization model?
 
-We know Lightning zaps go to authors. But what about Byline itself?
-- Does Byline take a cut of zaps? (NIP-57 split possible but requires Byline's Lightning Address on the author's profile)
-- Is Byline free? Subscription? One-time?
-- If subscription: what triggers payment? (Publishing? Storage? Featured?)
-- Are there any other revenue paths? (Premium themes? Domain-customization?)
+**STATUS:** [CONFIRMED] — Yes, small Byline platform split on zaps. NIP-57 multi-p tag with weight (e.g., 95% author, 5% Byline). Details deferred until revenue model is needed.
 
 ---
 
 ## NQ10: What is the brand and name?
 
-We have "Byline" as working title. Questions:
-- Is "Byline" the final name? Does it need a domain check?
-- Is there a logo concept? (We can generate one with image generation)
-- What's the one-liner tagline? ("Long-form stories on Nostr"?)
-- What's the visual identity direction? (Dark mode? Editorial/medium-style? Something else?)
+**STATUS:** [OPEN] — Dennis wants to check names. Generating name options and logo concepts.
+
+**Name options generated (2026-04-13):**
+1. **Byline** — working title, journalist term, author-facing, clean
+2. **Inkwell** — writing tool, premium, editorial feel
+3. **Folio** — page/sheet of paper, classic publishing term
+4. **Parchment** — old-world writing surface, warm, literary
+5. **Longform** — descriptive, no-nonsense
+6. **Draft** — the thing a writer produces, iterative, accessible
+
+**Logo concepts generated:**
+- Logo 1: lowercase "b" with lightning bolt in bowl — premium editorial
+- Logo 2: quill tip with ink drop — classic stationery feel
+- Logo 3: single pen stroke with fork — signal + pen combined
+
+Dennis to choose from options or pick a direction.
 
 ---
 
