@@ -8,11 +8,29 @@
 
 ## 1. Overview
 
-**Project name:** TBD (working title: Byline)
+**Project name:** TBD — awaiting Dennis selection from options below
 **Type:** Long-form blogging platform on Nostr
 **Core function:** Writers publish markdown stories to the Nostr network; readers discover and read them via a web interface with Lightning Network zaps.
 
 **One-liner:** Long-form stories on Nostr, with Lightning-powered appreciation.
+
+### Name Options (NQ10 — ready for Dennis review)
+
+| # | Name | Character | Status |
+|---|------|-----------|--------|
+| 1 | **Byline** | Journalist term, author-facing, clean and professional | Working title |
+| 2 | **Inkwell** | Writing tool, premium editorial feel | Option |
+| 3 | **Folio** | Classic publishing term (page/sheet) | Option |
+| 4 | **Parchment** | Old-world writing surface, warm and literary | Option |
+| 5 | **Longform** | Descriptive, no-nonsense | Option |
+| 6 | **Draft** | The thing a writer produces, iterative and accessible | Option |
+
+**Logo concepts generated (2026-04-13):**
+- Concept 1: lowercase "b" with lightning bolt in bowl — premium editorial
+- Concept 2: quill tip with ink drop — classic stationery feel
+- Concept 3: single pen stroke with fork — signal + pen combined
+
+Dennis to choose a name → update all project docs with chosen name (tag namespace, repo name, etc.)
 
 ---
 
@@ -349,7 +367,7 @@ TBD specifics (NQ6 deferred):
 | NQ4: Featured page curation | **OPEN** | Defer |
 | NQ6: Daybook specifics | **OPEN** | Defer |
 | NQ7: MVP scope | **OPEN** | Dennis to decide |
-| NQ2/NQ10: Name | **OPEN** | Dennis to decide |
+| NQ2/NQ10: Name | **OPEN — 6 options ready for review** | Dennis to choose |
 | Zap split implementation details | **OPEN** | Defer |
 | Alby split configuration | **OPEN** | Defer |
 
