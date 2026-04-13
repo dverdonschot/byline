@@ -1,8 +1,8 @@
-# Byline — Technical Specification
+# Longform — Technical Specification
 
-**Version:** 0.1-draft
+**Version:** 0.2-draft
 **Last updated:** 2026-04-13
-**Status:** Draft — awaiting name confirmation and NQ7 MVP scope decision
+**Status:** Near-final — awaiting domain confirmation
 
 ---
 
