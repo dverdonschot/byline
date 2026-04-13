@@ -1,331 +1,857 @@
-# Longform — Build Plan
+# Longform — Complete Build Specification
 
-**Version:** 0.1
+**Version:** 0.3-draft
 **Last updated:** 2026-04-13
-**Status:** Planning — Dennis to review and approve
+**Status:** Planning — waiting on Dennis to review feature completeness
 
 ---
 
-## 1. What Are We Building?
+## Design Language
 
-A self-hosted long-form blogging platform. Writers publish markdown stories to Nostr. Readers browse, search, and zap via Lightning. Built as a Docker app you run on your own VPS.
+### Colors
 
----
+```css
+:root {
+  /* Backgrounds */
+  --color-bg:           #faf9f7;   /* warm off-white, main background */
+  --color-surface:      #ffffff;    /* cards, modals */
+  --color-surface-2:    #f5f3f0;   /* input backgrounds, code blocks */
 
-## 2. MVP Feature List
+  /* Borders */
+  --color-border:       #e8e4df;    /* subtle warm gray borders */
+  --color-border-dark:  #d4cfc9;    /* stronger borders, dividers */
 
-### Must Have (MVP)
+  /* Text */
+  --color-text:         #1a1a1a;   /* primary text */
+  --color-text-muted:   #6b6b6b;   /* secondary text, metadata */
+  --color-text-faint:   #9a9a9a;    /* placeholders, timestamps */
 
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | **Landing / Front Page** | Shows featured/recent stories, freshest first |
-| 2 | **Story View** | Renders markdown article from Nostr kind 30023 event |
-| 3 | **Filter / Browse Page** | Filter by tag, by author, search |
-| 4 | **Write / Publish** | Markdown editor, preview, publish to Nostr |
-| 5 | **Login with Nostr** | Alby extension OR in-browser key → NIP-07 signing |
-| 6 | **Zap Button** | Reader zaps author via Alby WebLN |
-| 7 | **Author Profile** | Show name, bio, avatar from Nostr kind-0 |
-| 8 | **Import Post** | Paste markdown → publish as kind 30023 |
-| 9 | **Delete Post** | Send Nostr kind 5 delete event |
-| 10 | **Self-Hosted Docker** | docker-compose up, works on your VPS |
+  /* Accent — warm amber (Lightning color) */
+  --color-accent:       #d4a574;   /* primary accent, links, CTA buttons */
+  --color-accent-dark:  #b8956a;   /* hover state */
+  --color-accent-light: #ede0d4;   /* accent backgrounds, tag chips */
 
-### Nice to Have (Post-MVP)
-
-| # | Feature |
-|---|---------|
-| A | Featured Page (AI-curated selection) |
-| B | Zap Split (platform cut) |
-| C | Import from URL |
-| D | Multi-language support |
-| E | Custom theme / branding |
-
----
-
-## 3. Tech Stack (Confirmed)
-
-```
-Frontend:    Vite + TypeScript + React 18 (or Solid.js)
-Styling:    Plain CSS with CSS custom properties (no Tailwind unless asked)
-Markdown:   marked.js (fast, simple)
-Nostr lib:  nostr-tools (or deno-nostr for Deno backend)
-Zaps:       window.webln (Alby WebLN)
-Backend:    Deno HTTP server (fresh.deno.dev or custom)
-Database:   Postgres (via Deno postgres driver)
-Auth:       NIP-07 (browser extension) + in-browser keygen fallback
-Deployment: Docker Compose
+  /* Semantic */
+  --color-success:      #4a9e6b;   /* published, connected */
+  --color-error:        #c45c5c;   /* errors, delete */
+  --color-warning:       #c49a4a;   /* warnings */
+}
 ```
 
-**Frontend framework question:** React or Solid.js?
-- React: most familiar, biggest ecosystem
-- Solid.js: lighter, faster, less boilerplate
-- Both work with Vite. Dennis — preference?
+### Typography
 
----
+```css
+:root {
+  /* Font families */
+  --font-serif:    Georgia, 'Times New Roman', serif;     /* article body, headings */
+  --font-sans:     -apple-system, BlinkMacSystemFont,    /* UI, buttons, nav */
+                   'Segoe UI', system-ui, sans-serif;
+  --font-mono:     'SF Mono', 'Fira Code', Consolas, monospace;  /* code */
 
-## 4. Pages / Routes
+  /* Type scale */
+  --text-xs:    0.75rem;     /* 12px — labels, badges */
+  --text-sm:    0.875rem;    /* 14px — metadata, timestamps */
+  --text-base:  1.0625rem;   /* 17px — body text */
+  --text-lg:    1.125rem;    /* 18px — article body */
+  --text-xl:    1.25rem;     /* 20px — subheadings */
+  --text-2xl:   1.5rem;      /* 24px — article titles in lists */
+  --text-3xl:   2rem;        /* 32px — page headings */
+  --text-4xl:   2.75rem;     /* 44px — hero text */
 
-| Route | Page | Auth needed? |
-|-------|------|-------------|
-| `/` | Front page — recent + featured stories | No |
-| `/story/:naddr` | Individual article view | No |
-| `/filter` | Browse — filter by tag / author | No |
-| `/login` | Login / connect Nostr identity | No (landing here) |
-| `/write` | New story editor | Yes |
-| `/story/:naddr/edit` | Edit existing story | Yes (must be author) |
-| `/profile/:npub` | Author profile page | No |
-| `/settings` | Account settings (Lightning address, display name) | Yes |
-
----
-
-## 5. Frontend Architecture
-
-```
-src/
-├── main.tsx              # Vite entry point
-├── App.tsx               # Router + layout shell
-├── pages/
-│   ├── Home.tsx          # /
-│   ├── Story.tsx         # /story/:naddr
-│   ├── Filter.tsx        # /filter
-│   ├── Write.tsx         # /write
-│   ├── Edit.tsx          # /story/:naddr/edit
-│   ├── Login.tsx         # /login
-│   ├── Profile.tsx       # /profile/:npub
-│   └── Settings.tsx      # /settings
-├── components/
-│   ├── StoryCard.tsx     # Preview card on home/filter
-│   ├── MarkdownRenderer.tsx
-│   ├── ZapButton.tsx
-│   ├── NostrProfile.tsx  # Avatar + name + npub
-│   ├── TagBadge.tsx
-│   ├── MarkdownEditor.tsx # Textarea + preview toggle
-│   ├── RelayStatus.tsx   # Shows connected relays
-│   └── NavBar.tsx
-├── lib/
-│   ├── nostr.ts          # nostr-tools wrappers (query, publish, sign)
-│   ├── relay.ts          # Relay pool management
-│   ├── zap.ts            # WebLN zap flow
-│   ├── markdown.ts       # marked.js setup
-│   ├── db.ts             # Postgres queries (via Deno backend)
-│   └── types.ts          # Shared TypeScript types
-├── styles/
-│   ├── global.css        # Reset, CSS variables, typography
-│   ├── components.css    # Component-level styles
-│   └── pages.css         # Page-level styles
-└── stores/
-    └── session.ts        # Current user session (npub, kind-0 profile)
+  /* Line heights */
+  --leading-tight:  1.3;     /* headings */
+  --leading-normal: 1.7;      /* body text (generous for long-form) */
+  --leading-ui:     1.4;     /* buttons, labels */
+}
 ```
 
-**State management:** No Redux. React Context for session, local state for components. Solid.js alternative: signals.
+### Spacing System
 
----
-
-## 6. CSS Strategy
-
-Simple and clean. No Tailwind unless Dennis prefers it.
-
-```
-CSS Variables (in :root):
-  --color-bg: #faf9f7        (warm off-white)
-  --color-surface: #ffffff
-  --color-border: #e8e4df
-  --color-text: #1a1a1a
-  --color-text-muted: #6b6b6b
-  --color-accent: #d4a574     (warm amber/gold — lightning color)
-  --color-accent-dark: #b8956a
-  --font-body: Georgia, serif (editorial, writerly)
-  --font-ui: system-ui, sans-serif
-
-Typography:
-  Body: 18px / 1.7 line-height
-  Headings: Georgia serif
-  UI elements: system-ui
-  Code: monospace
+```css
+:root {
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+}
 ```
 
-**Design inspiration:** Medium meets Nostr — clean editorial layout, warm tones, serif headings, generous whitespace. Not dark-mode-first.
+### Motion
 
----
+```css
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);   /* smooth deceleration */
+  --ease-in:  cubic-bezier(0.7, 0, 0.84, 0);  /* smooth acceleration */
 
-## 7. Backend Architecture (Deno)
-
-Since we're using Deno as the backend runtime:
-
-```
-backend/
-├── main.ts               # Deno server entry
-├── fresh/               # Or: custom HTTP router
-├── routes/
-│   ├── api/
-│   │   ├── articles.ts   # GET /api/articles?tag=&author=
-│   │   ├── article.ts    # GET /api/article/:naddr
-│   │   ├── profile.ts    # GET /api/profile/:npub
-│   │   ├── publish.ts    # POST /api/publish (signed event from frontend)
-│   │   ├── zaps.ts       # GET /api/zaps/:articleId
-│   │   └── relay.ts      # WebSocket relay proxy (optional)
-│   └── pages/
-│       └── [...].tsx     # Server-rendered pages (optional SSR)
-├── db/
-│   ├── schema.sql        # Postgres schema
-│   └── queries.ts        # SQL query functions
-├── nostr/
-│   ├── relay.ts          # Relay pool
-│   ├── cache.ts          # Write-through cache: Nostr → Postgres
-│   └── sign.ts           # NIP-07 proxy (if needed)
-└── docker/
-    └── entrypoint.sh
+  --duration-fast:   120ms;   /* micro-interactions: hover, press */
+  --duration-normal: 240ms;   /* panels, modals, expanding */
+  --duration-slow:   400ms;   /* page transitions */
+}
 ```
 
-**Key question:** Does the frontend query relays directly (from browser), or via the Deno backend?
+### Border Radius
 
-- **Option A (Direct):** Browser queries relays via nostr-tools WebSocket. Fast, no backend needed for reads. But CORS issues with some relays.
-- **Option B (Via backend):** Deno backend queries relays, caches in Postgres, serves to frontend. Better caching, consistent relay list, harder to scale.
-- **Option C (Hybrid):** Read direct from browser for real-time data; write through backend for cache warming.
-
-**Recommended: Option A (Direct)** for MVP — keep it simple. Frontend queries relays directly. Backend only for: Postgres cache writes, publishing (proxy signed events), and zap handling.
-
----
-
-## 8. Nostr Data Flow
-
-### Reading a story
-```
-User opens /story/:naddr
-  → Frontend decodes naddr → [kind, pubkey, d-tag, relay]
-  → nostr-tools queries 4 relays in parallel
-  → First valid kind 30023 response wins
-  → marked.js renders markdown
-  → ZapButton queries for kind 9735 events (zap count)
+```css
+:root {
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-full: 9999px;      /* pills, avatars */
+}
 ```
 
-### Publishing a story
-```
-User clicks "Publish" in /write
-  → Frontend builds kind 30023 event
-  → window.nostr.signEvent(event) — Alby/nos2x signs
-  → POST /api/publish (backend receives signed event)
-  → Backend verifies signature
-  → Backend publishes to 4 relays in parallel
-  → Backend writes to Postgres cache
-  → Returns success → redirect to /story/:naddr
-```
+### Shadows
 
-### Caching (Postgres)
-```
-On publish:  write to articles table
-On read:    check Postgres first, then relay, update cache
-On delete:  mark deleted in Postgres (don't show)
+```css
+:root {
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.16);
+}
 ```
 
 ---
 
-## 9. Docker Compose Structure
+## Feature Inventory
 
-```yaml
-services:
-  app:
-    build: .
-    ports: ["3000:3000"]
-    env_file: .env
-    depends_on: [db]
-    networks: [byline]
+Every feature the platform needs. Divided into Reader, Writer, and Platform.
 
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: longform
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes: [pgdata:/var/lib/postgresql/data]
-    networks: [byline]
+### Reader Features
 
-  # Optional: own relay for discovery
-  relay:
-    image: scsibug/nostr-rs-relay:latest
-    ports: ["8080:8080"]
-    volumes: [/data/relay:/data]
-    networks: [byline]
+| ID | Feature | Description | Priority |
+|----|---------|-------------|----------|
+| R1 | **Read article** | Render kind 30023 markdown as beautiful article | Must |
+| R2 | **Browse home** | Fresh feed of recent stories tagged `longform` | Must |
+| R3 | **Filter by tag** | See all stories under a specific tag | Must |
+| R4 | **Filter by author** | See all stories by a specific npub | Must |
+| R5 | **Search** | Full-text search across article titles and content | Must |
+| R6 | **Author profile** | Name, bio, avatar, Lightning address, story list | Must |
+| R7 | **Zap article** | Send Lightning zap to author from article page | Must |
+| R8 | **Zap count** | Show total sats received per article | Must |
+| R9 | **Zap count (author)** | Show total sats received across all articles | Should |
+| R10 | **Article metadata** | Show published date, last updated, word count, read time | Must |
+| R11 | **Article tags** | Show and link all tags on an article | Must |
+| R12 | **Related articles** | Show other articles with same tag on article page | Should |
+| R13 | **Share article** | Copy link, copy naddr, share via Nostr | Should |
+| R14 | **Article replies** | Show kind 1111 replies to an article | Could |
+| R15 | **Dark mode** | System-following dark mode (optional, post-MVP) | Could |
 
-networks:
-  byline:
-volumes:
-  pgdata:
+### Writer Features
+
+| ID | Feature | Description | Priority |
+|----|---------|-------------|----------|
+| W1 | **Login with Alby** | NIP-07 via Alby extension — instant login | Must |
+| W2 | **Login with Nostr key** | In-browser keygen + localStorage, with backup warning | Must |
+| W3 | **Fallback: nos2x** | If no Alby, use nos2x extension NIP-07 | Must |
+| W4 | **Write story** | Markdown editor with live preview toggle | Must |
+| W5 | **Add title** | Set article title (becomes `title` tag in event) | Must |
+| W6 | **Add tags** | Add/remove `t` tags (topic labels) | Must |
+| W7 | **Add summary** | Set article summary (becomes `summary` tag) | Should |
+| W8 | **Add cover image** | Paste URL or upload → stored as `image` tag | Should |
+| W9 | **Draft save** | Auto-save draft to localStorage while writing | Must |
+| W10 | **Publish** | Sign kind 30023 event, push to relays | Must |
+| W11 | **Edit story** | Update kind 30023 (same `d` tag, new `created_at`) | Must |
+| W12 | **Delete story** | Send kind 5 delete event | Must |
+| W13 | **Unpublish** | Delete + remove from public feeds | Must |
+| W14 | **Import story** | Paste markdown content → create kind 30023 | Must |
+| W15 | **Profile editor** | Edit display name, bio, avatar URL | Must |
+| W16 | **Lightning address** | Set lud16 field for zaps in profile | Must |
+| W17 | **Preview mode** | Toggle between editor and rendered preview | Must |
+| W18 | **Word count / read time** | Live word count and estimated read time while writing | Should |
+| W19 | **Schedule publish** | Set future publish date (publish then) | Could |
+| W20 | **Series / drafts** | Manage multiple drafts, publish one at a time | Could |
+
+### Platform / Admin Features
+
+| ID | Feature | Description | Priority |
+|----|---------|-------------|----------|
+| P1 | **Article cache** | Postgres stores latest version of articles for fast reads | Must |
+| P2 | **Cache invalidation** | When kind 30023 updates on relay, refresh Postgres | Must |
+| P3 | **Cache warming** | Backend polls relays for new `longform` tagged content | Must |
+| P4 | **Featured page** | Curated selection shown on home page | Should |
+| P5 | **AI moderation** | AI reads article content before featuring | Should |
+| P6 | **Report article** | Reader submits report → stored in mod queue | Should |
+| P7 | **Mod queue** | Admin view of reported articles, approve/reject | Should |
+| P8 | **Zap split** | Platform takes % cut of zaps (NIP-57 multi-p) | Could |
+| P9 | **Email digest** | Weekly digest of featured stories to subscribers | Could |
+| P10 | **Webmention** | Receive webmentions for articles (NIP-27) | Could |
+| P11 | **RSS feed** | RSS/Atom feed of featured articles | Should |
+
+---
+
+## Pages and Routes
+
+### Route Map
+
+| Route | Page | Auth | Description |
+|-------|------|------|-------------|
+| `/` | **Home** | No | Featured + recent stories |
+| `/story/:naddr` | **Article** | No | Full article view |
+| `/story/:naddr/edit` | **Edit** | Yes (author) | Edit article |
+| `/filter` | **Filter** | No | Browse and search |
+| `/author/:npub` | **Author Profile** | No | Author's profile + story list |
+| `/login` | **Login** | No | Connect Nostr identity |
+| `/write` | **Write** | Yes | New article editor |
+| `/settings` | **Settings** | Yes | Account settings |
+| `/moderation` | **Mod Queue** | Yes (admin) | Reported articles |
+| `/sitemap.xml` | **Sitemap** | No | SEO sitemap |
+
+### Page Specifications
+
+---
+
+#### Home (`/`)
+
+**Purpose:** Entry point. Show best content, invite readers and writers.
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar: Logo | Search | Login/Get Started   │
+├──────────────────────────────────────────────┤
+│ Hero: "Long-form stories, owned by you"     │
+│       [Browse stories] [Start writing]       │
+├──────────────────────────────────────────────┤
+│ Section: Featured (if featured page exists)   │
+│  [FeaturedCard] [FeaturedCard] [FeaturedCard]│
+├──────────────────────────────────────────────┤
+│ Section: Recent                               │
+│  [StoryCard] [StoryCard] [StoryCard] ...    │
+│  Pagination / Infinite scroll                 │
+├──────────────────────────────────────────────┤
+│ Footer: About | GitHub | Nostr | Zaps go... │
+└──────────────────────────────────────────────┘
 ```
 
-**Note:** The app talks to Nostr directly from the browser for reads. The optional relay is for self-hosters who want their own relay.
+**Components on page:** NavBar, HeroSection, FeaturedSection, StoryCard × N, Footer
+**Data:** fetches recent kind 30023 events tagged `longform` from Postgres cache (or relays if cache empty)
 
 ---
 
-## 10. Build Order
+#### Article (`/story/:naddr`)
 
-We build in layers — each layer produces something usable.
+**Purpose:** Read a single story.
 
-### Layer 1: Skeleton (no Nostr yet)
-- [ ] Vite + React project scaffolded
-- [ ] CSS variables + global styles
-- [ ] Router setup (home, story, filter, write, login)
-- [ ] NavBar + basic layout
-- [ ] Docker Compose + Postgres schema
-- [ ] "Hello World" page in Docker ✅
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar                                      │
+├──────────────────────────────────────────────┤
+│ Article Header:                              │
+│  Title (h1, serif)                          │
+│  By [AuthorName] · [date] · [read time] · [tags]│
+│  [ZapButton: ⚡ 420 sats]                    │
+├──────────────────────────────────────────────┤
+│ Cover Image (if present)                      │
+├──────────────────────────────────────────────┤
+│ Article Body:                                │
+│  Rendered Markdown (serif, 18px, 1.7lh)     │
+│  Code blocks, blockquotes, images, etc.     │
+├──────────────────────────────────────────────┤
+│ Zap Section:                                  │
+│  [ZapButton: ⚡ Zap the author]              │
+│  "X sats from Y zappers"                    │
+├──────────────────────────────────────────────┤
+│ Author Card:                                  │
+│  Avatar · Name · npub · bio · Lightning addr │
+│  [View all stories by this author]           │
+├──────────────────────────────────────────────┤
+│ Related Articles (same tags)                 │
+├──────────────────────────────────────────────┤
+│ Footer                                       │
+└──────────────────────────────────────────────┘
+```
 
-**Deliverable:** Running Docker app on Tailscale VPS, blank home page visible
-
-### Layer 2: Read (no auth yet)
-- [ ] Relay query (nostr-tools, from browser)
-- [ ] Story view — render kind 30023 event
-- [ ] Home page — list stories from relays
-- [ ] Filter page — query by tag
-- [ ] Profile page — show kind-0 metadata
-- [ ] Markdown rendering (marked.js)
-
-**Deliverable:** Read any public Nostr long-form story without logging in
-
-### Layer 3: Write (auth)
-- [ ] NIP-07 signing (Alby / nos2x detect + use)
-- [ ] In-browser keygen fallback
-- [ ] Markdown editor with preview
-- [ ] Publish → backend → relays
-- [ ] Edit (new kind 30023 with same d-tag)
-- [ ] Delete (kind 5 event)
-
-**Deliverable:** Publish a story to Nostr from the web UI
-
-### Layer 4: Zap
-- [ ] Zap button (window.webln)
-- [ ] Zap count display (query kind 9735)
-- [ ] Zap split (NIP-57 multi-p, if MVP)
-- [ ] Author Lightning address display
-
-**Deliverable:** Zap an author from a story page
-
-### Layer 5: Polish
-- [ ] Settings page (Lightning address in profile)
-- [ ] Import paste
-- [ ] Responsive design check
-- [ ] Error states (relay failures, signing denied)
-- [ ] Loading states + skeleton screens
-
-**Deliverable:** Shareable with others
+**Components on page:** NavBar, ArticleHeader, ArticleBody, MarkdownRenderer, ZapButton, ZapSection, AuthorCard, RelatedArticles, Footer
+**Data:** decodes naddr → queries relay → fetches kind 30023 event → renders markdown
 
 ---
 
-## 11. Open Decisions
+#### Filter / Browse (`/filter`)
 
-These need Dennis's input before Layer 1 can start:
+**Purpose:** Find stories by tag, author, or search term.
 
-| Decision | Options | Status |
-|----------|---------|--------|
-| Frontend framework | React vs Solid.js | **Dennis to choose** |
-| Frontend queries relays directly? | Yes (simpler) vs via backend | **Recommended: Direct** |
-| CSS approach | Plain CSS + variables vs Tailwind | **Recommended: Plain CSS** |
-| Own relay in docker? | Yes (optional) vs relay-free MVP | **Recommended: Optional** |
-| Deno framework | Fresh.deno.dev vs custom HTTP | **Recommended: Fresh** |
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar                                      │
+├──────────────────────────────────────────────┤
+│ Filter Bar:                                  │
+│  [Tag input] [Author npub input] [Search]   │
+│  Active filters shown as removable chips      │
+├──────────────────────────────────────────────┤
+│ Results: X stories found                     │
+│  [StoryCard] [StoryCard] ...                 │
+│  Pagination                                  │
+└──────────────────────────────────────────────┘
+```
+
+**Components on page:** NavBar, FilterBar, TagInput, AuthorInput, SearchInput, FilterChip × N, StoryCard × N, Pagination
 
 ---
 
-## 12. What Dennis Needs to Decide Now
+#### Author Profile (`/author/:npub`)
 
-1. **React or Solid.js?** — React more familiar, Solid lighter
-2. **Tailwind or plain CSS?** — Tailwind faster to prototype, plain CSS more ownable
-3. **Anything else from this plan that needs changing?**
+**Purpose:** See an author's identity and all their stories.
 
-Once Dennis approves this plan → Layer 1 starts.
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar                                      │
+├──────────────────────────────────────────────┤
+│ Profile Header:                              │
+│  [Avatar] · [Display Name]                  │
+│  npub (truncated, copy button)               │
+│  [Lightning address] ⚡                       │
+│  Bio (markdown rendered, limited)            │
+├──────────────────────────────────────────────┤
+│ Stats: [N stories] [Total zaps received ⚡] │
+├──────────────────────────────────────────────┤
+│ Their Stories:                               │
+│  [StoryCard] × all their stories            │
+└──────────────────────────────────────────────┘
+```
+
+**Components on page:** NavBar, ProfileHeader, Avatar, LightningBadge, BioExcerpt, StatsRow, StoryCard × N
+
+---
+
+#### Login (`/login`)
+
+**Purpose:** Connect a Nostr identity.
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar                                      │
+├──────────────────────────────────────────────┤
+│ Login Options (centered card):               │
+│                                              │
+│  [🔌 Connect with Alby]                    │
+│     "Best experience — includes Lightning"   │
+│                                              │
+│  [Nostr Key]                               │
+│     "Generate a new keypair in browser"    │
+│                                              │
+│  [Extension]                                │
+│     "Use nos2x or other NIP-07 extension"  │
+│                                              │
+│  Footer note about key security              │
+└──────────────────────────────────────────────┘
+```
+
+**Components on page:** NavBar, LoginCard, AlbyConnectButton, NostrKeyButton, ExtensionButton, SecurityNote
+
+---
+
+#### Write (`/write`)
+
+**Purpose:** Write and publish a new story.
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar [Draft saved 2m ago] [Publish ▼]     │
+├──────────────────────────────────────────────┤
+│ Title: [large text input, placeholder...]   │
+├──────────────────────────────────────────────┤
+│ Tags: [tag input] [+ Add tag]               │
+│        [#longform] #topic [x]               │
+├──────────────────────────────────────────────┤
+│ Summary: [text input, optional]             │
+├──────────────────────────────────────────────┤
+│ Cover image URL: [input] [Preview]           │
+├──────────────────────────────────────────────┤
+│ ┌─────────────────┬──────────────────┐       │
+│ │ Markdown Editor │ Live Preview     │       │
+│ │                 │                  │       │
+│ │ # My Story     │ My Story        │       │
+│ │                 │                  │       │
+│ │ Write here...  │ Rendered here... │       │
+│ │                 │                  │       │
+│ │                 │                  │       │
+│ └─────────────────┴──────────────────┘       │
+│ [Word count: 0] [Read time: 0 min]         │
+└──────────────────────────────────────────────┘
+```
+
+**Components on page:** NavBar, TitleInput, TagInput, SummaryInput, CoverImageInput, SplitPane (editor + preview), MarkdownEditor, MarkdownPreview, WordCount, PublishDropdown
+
+---
+
+#### Edit (`/story/:naddr/edit`)
+
+**Purpose:** Edit an existing story. Same layout as Write, but pre-filled.
+
+---
+
+#### Settings (`/settings`)
+
+**Purpose:** Manage account, profile, and Lightning setup.
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│ NavBar                                      │
+├──────────────────────────────────────────────┤
+│ Settings Page:                               │
+│                                              │
+│  Profile Section:                            │
+│  [Display name]                             │
+│  [Bio — textarea]                           │
+│  [Avatar URL] [preview]                      │
+│  [Save profile]                             │
+│                                              │
+│  Lightning Section:                          │
+│  [Lightning address] ⚡                     │
+│  "Used for receiving zaps"                   │
+│  [Save Lightning address]                    │
+│                                              │
+│  Your Public Key:                            │
+│  [npub1xxx...] [Copy] [View on Nostr]      │
+│                                              │
+│  Connected via: Alby / Nostr Key / nos2x   │
+│                                              │
+│  [Delete Account Local Data]                 │
+└──────────────────────────────────────────────┘
+```
+
+**Components on page:** NavBar, SettingsSection, FormInput, FormTextarea, AvatarPreview, LightningAddressInput, NpubDisplay, ConnectionBadge, DangerZone
+
+---
+
+## Component Inventory
+
+Every UI component, with props and states.
+
+### StoryCard
+Displays article preview in a list.
+
+**Props:** `title`, `summary`, `authorName`, `authorAvatar`, `publishedAt`, `tags`, `zapCount`, `readTime`, `coverImage?`
+**States:** default, hover (shadow lift + accent border-left), skeleton (loading)
+**Events:** click → navigate to `/story/:naddr`
+
+### ArticleCard (variant)
+Larger card for featured section.
+**Same props as StoryCard but with cover image prominent.**
+
+### ZapButton
+Sends a Lightning zap to the author.
+
+**Props:** `npub`, `naddr`, `authorLud16`
+**States:**
+- idle: "⚡ Zap"
+- loading: spinner
+- success: "⚡ Zapped!" (2s then reset)
+- no-extension: "⚡ Install Alby"
+- no-webln: "⚡ Get Alby"
+- error: red, shows error
+**Size variants:** sm (inline), md (default), lg (article page)
+
+### ZapCount
+Shows zap count on an article or author profile.
+
+**Props:** `zapCount`, `zapperCount`
+**Format:** "⚡ 420 sats from 12 zappers"
+
+### MarkdownEditor
+Textarea-based markdown editor with tab support.
+
+**Props:** `value`, `onChange`, `placeholder`
+**Features:**
+- Tab key inserts 2 spaces
+- Auto-resize height
+- Monospace font (SF Mono / Fira Code)
+- Line numbers gutter
+**States:** default, focused (accent border), disabled
+
+### MarkdownPreview
+Renders markdown as styled HTML.
+
+**Props:** `content`, `className?`
+**Features:**
+- Renders: headings, bold, italic, links, blockquotes, code blocks, images, lists, tables
+- Sanitized (no raw HTML)
+- Open external links in new tab
+**States:** default, empty (shows placeholder text)
+
+### AuthorCard
+Shows author info inline on article page.
+
+**Props:** `npub`, `displayName`, `avatar`, `bio`, `lud16`, `storyCount?`, `totalZaps?`
+**Events:** click author name → `/author/:npub`
+
+### Avatar
+Circular user avatar image.
+
+**Props:** `src?`, `npub?`, `size: sm | md | lg`
+**States:**
+- image loads: show image
+- image fails: show generated identicon from npub
+- no src and no npub: show default icon
+
+### TagBadge
+Clickable tag chip.
+
+**Props:** `tag`, `size?: sm | md`, `onClick?: () => void`
+**States:** default (accent-light bg), hover (accent-dark bg), active (pressed)
+**Events:** click → navigate to `/filter?tag=tagname`
+
+### NavBar
+Top navigation bar.
+
+**Content:**
+- Logo (left): "Longform" wordmark
+- Search (center): search input, expands on focus
+- Actions (right): [Write] button (if logged in), Login button (if not), Avatar (if logged in)
+**States:** default, scrolled (shadow appears), mobile (hamburger menu)
+
+### Footer
+Bottom of every page.
+
+**Content:**
+- Left: "Longform — Long-form stories on Nostr"
+- Links: About | GitHub | Nostr | RSS
+- Right: "Zaps go to authors ⚡"
+
+### LoadingSkeleton
+Animated placeholder while data loads.
+
+**Variants:** StoryCardSkeleton, ArticleSkeleton, ProfileSkeleton
+
+### EmptyState
+Shown when a list/filter returns no results.
+
+**Props:** `title`, `message`, `action?: { label, onClick }`
+
+### ErrorState
+Shown when a fetch fails.
+
+**Props:** `title`, `message`, `retry?: () => void`
+
+---
+
+## Nostr Integration Specification
+
+### Event Types Used
+
+| Kind | Name | Direction | Used for |
+|------|------|----------|----------|
+| 0 | Profile | Read | Author display name, avatar, bio, lud16 |
+| 1 | Short note | Read/Write | Replies, comments (kind 1111 preferred) |
+| 5 | Deletion | Write | Delete an article |
+| 30023 | Long-form | Read/Write | **Primary article storage** |
+| 30024 | Draft | Read/Write | Article drafts |
+| 1111 | Comment | Read/Write | Article replies/threads |
+| 9734 | Zap request | Write | Reader initiates zap |
+| 9735 | Zap receipt | Read | Display zap count |
+| 30000-30099 | Lists | Read/Write | Mute lists, bookmark lists (NIP-51) |
+
+### Relay Configuration
+
+**No own relay for MVP.** Frontend queries relays directly.
+
+**Default relay list (4 relays):**
+```
+wss://relay.damus.io
+wss://purplepag.es
+wss://nos.lol
+wss://relay.nostr.bg
+```
+
+**Query strategy:**
+- Read: query all 4 relays in parallel, first valid response wins
+- Publish: publish to all 4 relays, wait for 2 confirmations
+
+**Per-article relay hint:** Store the relay that first returned the event, use it as the primary relay for subsequent reads of that article.
+
+### NIP-07 Signing Flow
+
+```
+1. Check if window.alby exists → use it (Alby has NIP-07)
+2. Else check if window.nostr exists → use it (nos2x / other extension)
+3. Else → in-browser keygen (generate PK, store in localStorage, warn user)
+```
+
+### Zap Flow (WebLN)
+
+```
+1. Reader clicks ZapButton
+2. Frontend builds kind 9734 event:
+   - p: author's hex pubkey
+   - e: article event id
+   - a: event coordinate (30023:pubkey:d-tag)
+   - relays: [list of relays]
+   - amount: chosen by reader (preset amounts: 100, 500, 1000, 5000 sats)
+3. Frontend calls window.webln.enable() → Alby popup
+4. Alby handles invoice generation + user approval + payment
+5. Author's lnurl server publishes kind 9735 to relays
+6. Frontend watches for 9735 events with matching e tag → updates zap count
+```
+
+### Article Cache Strategy
+
+```
+Read path:
+  User requests /story/:naddr
+    → Check Postgres cache (key: naddr)
+    → If hit: return cached article
+    → If miss: query relays → store in Postgres → return
+
+Write path (publish):
+  User publishes → sign event → POST to backend
+    → Backend verifies signature
+    → Backend publishes to relays
+    → Backend writes to Postgres
+    → Return naddr to frontend
+
+Update path (edit):
+  Same as write, same d-tag, new created_at
+
+Delete path:
+  User deletes → sign kind 5 event → POST to backend
+    → Backend publishes kind 5 to relays
+    → Backend marks article as deleted in Postgres (soft delete)
+    → Article removed from public views
+
+Cache warming:
+  Backend cron: every 5 min, query relays for recent longform events
+  → For each new event, upsert into Postgres
+```
+
+---
+
+## Data Models
+
+### Postgres Schema
+
+```sql
+-- Articles (cached from Nostr, latest version per d-tag)
+CREATE TABLE articles (
+  id            TEXT PRIMARY KEY,          -- naddr hash or d-tag
+  naddr         TEXT UNIQUE NOT NULL,     -- full naddr for linking
+  d_tag         TEXT NOT NULL,            -- article slug
+  author_npub   TEXT NOT NULL,           -- author npub
+  title         TEXT,
+  summary       TEXT,
+  content       TEXT,                    -- full markdown (or first 10KB)
+  content_hash  TEXT,                   -- SHA256 of content for change detection
+  cover_image   TEXT,
+  published_at  TIMESTAMPTZ,
+  updated_at    TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  zap_count     BIGINT DEFAULT 0,        -- aggregated from 9735
+  zap_sats      BIGINT DEFAULT 0,        -- total sats received
+  is_deleted    BOOLEAN DEFAULT FALSE,
+  first_relay   TEXT,                    -- relay where we first found this
+  tags          TEXT[]                   -- array of t tags
+);
+
+CREATE INDEX idx_articles_author    ON articles(author_npub);
+CREATE INDEX idx_articles_published ON articles(published_at DESC);
+CREATE INDEX idx_articles_tags      ON articles USING GIN(tags);
+
+-- Zap events (raw, for aggregation)
+CREATE TABLE zaps (
+  id          TEXT PRIMARY KEY,
+  event_id    TEXT NOT NULL,             -- kind 9735 event id
+  article_id  TEXT REFERENCES articles(id),
+  author_npub TEXT NOT NULL,
+  zapper_npub TEXT,                      -- anonymous if no npub
+  amount_sats BIGINT NOT NULL,
+  bolt11      TEXT,
+  published_at TIMESTAMPTZ,
+  UNIQUE(event_id)
+);
+
+CREATE INDEX idx_zaps_article ON zaps(article_id);
+
+-- Profiles (cached from kind 0)
+CREATE TABLE profiles (
+  npub         TEXT PRIMARY KEY,
+  display_name TEXT,
+  name         TEXT,
+  about        TEXT,
+  picture      TEXT,
+  lud16        TEXT,                     -- Lightning address
+  lud06        TEXT,
+  website      TEXT,
+  updated_at   TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Sessions (web sessions)
+CREATE TABLE sessions (
+  id          TEXT PRIMARY KEY,
+  npub        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  last_seen   TIMESTAMPTZ DEFAULT NOW(),
+  ext_auth    TEXT,                     -- 'alby' | 'nostr-key' | 'nos2x'
+  FOREIGN KEY (npub) REFERENCES profiles(npub)
+);
+
+-- Moderation queue
+CREATE TABLE mod_queue (
+  id          SERIAL PRIMARY KEY,
+  article_id  TEXT REFERENCES articles(id),
+  reported_by TEXT,                      -- reporter npub (anonymous if not logged in)
+  reason      TEXT,
+  status      TEXT DEFAULT 'pending',    -- pending / approved / rejected
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  reviewed_at TIMESTAMPTZ
+);
+
+-- Featured articles (curated)
+CREATE TABLE featured (
+  article_id  TEXT PRIMARY KEY REFERENCES articles(id),
+  featured_at TIMESTAMPTZ DEFAULT NOW(),
+  note       TEXT                              -- why it was featured
+);
+
+-- App config (key-value store)
+CREATE TABLE config (
+  key   TEXT PRIMARY KEY,
+  value JSONB
+);
+```
+
+### API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/articles` | No | List articles (filter: tag, author, search, limit, offset) |
+| GET | `/api/article/:naddr` | No | Get single article |
+| POST | `/api/publish` | Yes | Publish new article (signed event in body) |
+| POST | `/api/delete` | Yes | Delete article (signed kind 5 in body) |
+| GET | `/api/profile/:npub` | No | Get cached profile |
+| PUT | `/api/profile` | Yes | Update own profile |
+| GET | `/api/zaps/:articleId` | No | Get zap count for article |
+| GET | `/api/featured` | No | Get featured articles |
+| POST | `/api/zaps` | No | Receive zap receipt webhook (optional) |
+| GET | `/api/me` | Yes | Get current session info |
+| POST | `/api/session` | No | Create session (from NIP-07 signed event) |
+| DELETE | `/api/session` | Yes | Destroy session |
+| GET | `/api/relays` | No | Get configured relay list |
+| POST | `/api/report` | No | Report an article |
+
+### Frontend State (React Context)
+
+```typescript
+// Session context
+interface Session {
+  npub: string;
+  pubkey: string;           // hex
+  displayName?: string;
+  picture?: string;
+  extAuth: 'alby' | 'nostr-key' | 'nos2x';
+  hasLightning: boolean;
+  lud16?: string;
+}
+
+// Relay status context
+interface RelayStatus {
+  relay: string;
+  connected: boolean;
+  latency?: number;
+}
+
+// Toast/notification context
+interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
+```
+
+---
+
+## Build Order
+
+### Phase 0: Foundation
+- [ ] Initialize Vite + React + TypeScript project
+- [ ] CSS variables + global styles (design tokens)
+- [ ] TypeScript types for all Nostr events and API
+- [ ] Docker Compose: app + postgres (relay-free)
+- [ ] Verify: app builds, runs in Docker, connects to Postgres
+
+### Phase 1: Read
+- [ ] NavBar + Footer
+- [ ] Home page (static, no data)
+- [ ] StoryCard component
+- [ ] Article page (hardcoded data)
+- [ ] Filter page (hardcoded data)
+- [ ] Author profile page (hardcoded data)
+- [ ] MarkdownRenderer component
+- [ ] Relay query (nostr-tools, browser → relays)
+- [ ] Home page → live data from Postgres
+- [ ] Article page → live data from Nostr
+- [ ] Filter page → live data
+- [ ] Author profile → live data
+- [ ] ZapCount component (query kind 9735)
+- [ ] LoadingSkeleton + ErrorState components
+- [ ] EmptyState component
+- [ ] Pagination
+
+### Phase 2: Write
+- [ ] Login page + all 3 login flows
+- [ ] Write page + MarkdownEditor
+- [ ] MarkdownPreview
+- [ ] Split pane (editor + preview)
+- [ ] TagInput component
+- [ ] Publish flow: sign → backend → relay
+- [ ] localStorage draft auto-save
+- [ ] Edit page (pre-fill from existing article)
+- [ ] Delete flow (kind 5)
+- [ ] Settings page (profile + Lightning address)
+- [ ] Profile update (kind 0 event)
+
+### Phase 3: Zap
+- [ ] ZapButton component (all states)
+- [ ] Zap presets (100/500/1000/5000 sats)
+- [ ] Zap flow via WebLN
+- [ ] ZapCount live update after zap
+- [ ] Author ZapSection (total sats on profile)
+- [ ] Zap aggregate on article list
+
+### Phase 4: Polish
+- [ ] Import paste (paste markdown → editor)
+- [ ] Word count + read time (editor)
+- [ ] Cover image URL input + preview
+- [ ] Article metadata (word count, date, tags)
+- [ ] Related articles (same tags)
+- [ ] Share article (copy link, copy naddr)
+- [ ] AuthorCard component
+- [ ] Responsive design (mobile)
+- [ ] Focus states + keyboard nav
+- [ ] SEO meta tags per article
+- [ ] RSS feed
+
+### Phase 5: Platform
+- [ ] Featured articles table + admin UI
+- [ ] Report article flow
+- [ ] Mod queue page
+- [ ] Sitemap
+- [ ] Cache warming cron
+- [ ] Cache invalidation on edit/delete
+
+---
+
+## Open Questions
+
+| # | Question | Options | Status |
+|---|----------|---------|--------|
+| 1 | **Markdown editor** | Textarea-based (simple) or CodeMirror/Monaco (rich) | Textarea for MVP |
+| 2 | **Image hosting** | External URL only for MVP? Or upload to nostr.build? | External URL only for MVP |
+| 3 | **Read time estimate** | 200 wpm or 250 wpm? | 200 wpm (default for long-form) |
+| 4 | **Pagination** | Offset-based or cursor-based (faster) | Offset for MVP |
+| 5 | **Article content in Postgres** | Full content or just metadata? | Full content (for search) |
+| 6
