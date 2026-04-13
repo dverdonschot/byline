@@ -601,18 +601,25 @@ wss://relay.nostr.bg
 
 ### Article Cache Strategy
 
+**Architecture: Browser queries relays directly. Postgres caches the home feed only.**
+
 ```
-Read path:
-  User requests /story/:naddr
-    → Check Postgres cache (key: naddr)
-    → If hit: return cached article
-    → If miss: query relays → store in Postgres → return
+Article page read (/story/:naddr):
+  → Browser decodes naddr → nostr-tools queries 4 relays in parallel
+  → First valid kind 30023 response wins
+  → Rendered immediately (always fresh)
+  → NOT routed through Postgres (direct Nostr, no cache)
+
+Home page read (/):
+  → Backend has warm cache (Postgres articles table)
+  → Returns cached feed instantly (fast, no relay latency)
+  → Cache warmed by cron every 5 min
 
 Write path (publish):
   User publishes → sign event → POST to backend
     → Backend verifies signature
     → Backend publishes to relays
-    → Backend writes to Postgres
+    → Backend writes to Postgres (home feed cache)
     → Return naddr to frontend
 
 Update path (edit):
@@ -622,11 +629,12 @@ Delete path:
   User deletes → sign kind 5 event → POST to backend
     → Backend publishes kind 5 to relays
     → Backend marks article as deleted in Postgres (soft delete)
-    → Article removed from public views
+    → Removed from home feed
 
-Cache warming:
-  Backend cron: every 5 min, query relays for recent longform events
-  → For each new event, upsert into Postgres
+Cache warming (cron, every 5 min):
+  Backend queries relays for recent kind 30023 events tagged longform
+  → Upsert into Postgres articles table
+  → Home page always has fresh feed without readers hitting relays
 ```
 
 ---
