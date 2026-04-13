@@ -19,7 +19,7 @@
 - Logo direction: **Direction 3** — single pen stroke with fork, charcoal on white, pen nib + signal pulse combined ✅
 - Name choice reason: descriptive, no-nonsense, fits Nostr landscape
 
-**Domain:** Dennis to check availability at instantdomainsearch.com
+**Domain:** `longform.now` — reserved for future purchase. Development uses Tailscale private URL (e.g., `https://longform[your-tail].ts.net`). Public domain purchase deferred until POC is ready to show.
 
 ---
 
@@ -274,7 +274,14 @@ ZAP_SPLIT_AUTHOR=95
 ZAP_SPLIT_PLATFORM=5
 ```
 
-### Minimum VPS Requirements
+### Development Setup (Tailscale)
+- No public domain needed during development
+- Longform runs on a Tailscale-attached VPS (e.g., Hetzner with Tailscale installed)
+- Access via Tailscale DNS: `https://longform[.tail].ts.net`
+- HTTPS handled by Tailscale (automatic cert via Let's Encrypt)
+- To expose publicly later: add a Cloudflare tunnel or point `longform.now` to the VPS
+
+### Production VPS Requirements
 - RAM: 2GB
 - CPU: 1 core
 - Disk: 20GB SSD
@@ -347,7 +354,7 @@ TBD specifics (NQ6 deferred):
 | NQ9: Small zap split | ✅ Confirmed |
 | NQ4: Featured page curation | OPEN — defer |
 | NQ6: Daybook specifics | OPEN — defer |
-| Domain availability | OPEN — Dennis to check |
+| Domain | ✅ `longform.now` reserved, purchase deferred; Tailscale for dev |
 | Discovery tag | ✅ Confirmed — `longform` |
 | Zap split implementation | OPEN — defer |
 
