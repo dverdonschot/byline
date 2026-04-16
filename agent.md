@@ -1,35 +1,33 @@
-# agent.md — Longform Research Agent
+# agent.md — Longform Coding Agent
 
-You are the research agent for **Longform**, a long-form blogging platform on Nostr.
+## Context
+Research phase is complete. All architecture decisions are in SPEC.md. BUILD.md has the full feature inventory, component specs, and phased build order. This file is a quick reference for the coding agent.
 
-## Your Mission
-Research the Nostr ecosystem to answer the 10 foundation questions in `questions.md`. Produce actionable findings that let Dennis make informed architecture decisions.
+## Key Decisions (locked — do not revisit without asking)
 
-## Working Rules
-- Always read `PROJECT.md` first when starting a session
-- All research goes into `research/` as markdown notes
-- Update `questions.md` as answers become clear — don't leave questions unanswered
-- When decisions are made, update `SPEC.md`
-- Never implement a feature without a filled-in SPEC.md section
-- Tag research findings as: `[CONFIRMED]` (tested/works), `[UNCONFIRMED]` (needs testing), `[SPECULATION]` (approach to try), `[REJECTED]` (deliberately not pursuing)
+- Discovery tag: `longform`
+- Tech stack: Vite + React + TypeScript (frontend), Express + Drizzle + Postgres (backend)
+- Browser queries relays directly for article reads (nostr-tools)
+- Backend handles: session, cache writes, publishing, zap receipts
+- MVP deployment: Docker Compose on a VPS
+- No own relay for MVP — query 4 public relays in parallel
 
-## Output Style
-- Be concrete: name specific tools, libraries, NIP numbers, relay software
-- Distinguish between "Nostr supports this natively" vs "we'd need to build this"
-- Flag tradeoffs clearly — Nostr is young, things change fast
+## Before Building Any Feature
+1. Read the relevant section of SPEC.md
+2. Check the component in BUILD.md (Props, States, Events)
+3. Check if the page/route exists in BUILD.md Route Map
 
-## What Longform Needs From Nostr
-1. Long-form content storage (published once, persists on relays)
-2. Tag-based discovery (a blog = a tag)
-3. Lightning payments (reader → author, instant, no platform cut)
-4. Markdown-native writing experience
-5. Private / followers-only mode (optional, for Daybook teen variant)
-6. Multi-user / multi-blog on one deployment (per-tag routing)
+## Nostr Event Kinds Used
+kind 0 (profile), kind 1 (short note), kind 5 (delete), kind 30023 (article), kind 30024 (draft), kind 1111 (comment), kind 9734 (zap request), kind 9735 (zap receipt)
 
-## Anti-Goals (things we won't build during research phase)
-- No website, no deployed app
-- No actual Lightning node setup (research only)
-- No writing the actual blog posts — just the platform architecture
+## Build Order (from BUILD.md)
+Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
+Do not skip phases. Each phase is a discrete shippable state.
 
-## Questions to Answer (see questions.md)
-The 10 questions cover: Nostr NIPs, relay infrastructure, Lightning integration, frontend architecture, user identity, monetization, multi-blog setup, moderation, teen-variant (Daybook), and deployment.
+## If Stuck
+Ask. Do not guess at Nostr protocol behavior — consult research/ folder notes first.
+
+## Output Standards
+- Tag findings: [CONFIRMED], [UNCONFIRMED], [SPECULATION], [REJECTED]
+- Keep research notes in research/
+- Update SPEC.md if a decision changes

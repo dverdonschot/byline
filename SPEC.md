@@ -168,17 +168,20 @@ Byline → window.webln (Alby) → author's lnurl server → Lightning Network
 
 ## 7. Tech Stack
 
-### Decision: **Option D — Vite + Deno** ✅ CONFIRMED
+### Decision: **Vite + Node.js + Express** ✅ CONFIRMED (2026-04-16)
 
 | Layer | Choice |
 |-------|--------|
-| Frontend build | Vite + TypeScript |
-| Backend runtime | Deno |
-| Nostr lib | deno-nostr (or nostr-tools via compatibility layer) |
-| Database | Postgres (via Deno Postgres driver) or Deno KV |
-| Deployment | Deno Deploy or VPS |
+| Frontend build | Vite + React + TypeScript |
+| Backend | Node.js + Express (REST API) |
+| Nostr lib | nostr-tools (browser + Node, well-maintained) |
+| ORM | Drizzle ORM (type-safe, lightweight) |
+| Database | Postgres 16 |
+| Deployment | Docker Compose (self-hosted VPS) |
 
-**Why Vite + Deno:** Vite works well with TypeScript; Deno has multiple deploy/runtime options (Deno Deploy, VPS, Docker). Clean, modern, secure by default.
+**Why Node.js over Deno:** Far larger library ecosystem, easier troubleshooting, familiar patterns, same team that builds Vite (Vitest, etc.). Express is minimal and well-understood.
+
+**Architecture:** Browser queries relays directly for article content (nostr-tools). Backend handles: session management, Postgres caching/writes, publishing to relays, zap receipt webhooks.
 
 ### Postgres Schema (What Nostr Can't Store)
 

@@ -6,9 +6,9 @@ These emerge from the foundational research. Once answered, we can write SPEC.md
 
 ## NQ1: What is the tech stack decision?
 
-**CONFIRMED: Option D — Vite + Deno ✅**
+**CONFIRMED: Vite + Node.js + Express ✅ (updated 2026-04-16)**
 
-Dennis: Vite works well with TypeScript, Deno has multiple deploy/runtime options. No further elaboration needed.
+Dennis: Vite + Node.js over Deno — larger ecosystem, easier troubleshooting. Express for REST API, Drizzle for Postgres.
 
 ---
 
