@@ -348,7 +348,7 @@ TBD specifics (NQ6 deferred):
 
 | Question | Status | Owner |
 |----------|--------|-------|
-| NQ1: Tech stack | ✅ **CONFIRMED — Vite + Deno** | Done |
+| NQ1: Tech stack | ✅ **CONFIRMED — Vite + Node.js + Express + Drizzle** | Done |
 | NQ2/NQ10: Name | ✅ **CONFIRMED — Longform** | Done |
 | NQ7: MVP scope | ✅ **CONFIRMED — Docker self-hosted MVP** | Done |
 | NQ3: Free speech | ✅ Confirmed |

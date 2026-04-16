@@ -45,8 +45,8 @@ A long-form blogging platform built on the Nostr protocol. Writers publish markd
 ## Project Status
 - **Phase:** Research complete, architecture defined
 - **Current step:** Waiting on domain check (Dennis), then move to build
-- **Next:** Docker setup, tech stack (Vite + Deno), MVP build
-- **Confirmed:** Name=Longform, Tech=Vite+Deno, MVP=Docker self-hosted, Auth=Alby+Nostr keys
+- **Next:** Docker setup, tech stack (Vite + Node.js), MVP build
+- **Confirmed:** Name=Longform, Tech=Vite+Node.js+Express, MVP=Docker self-hosted, Auth=Alby+Nostr keys
 
 ## Folder Structure
 ```
