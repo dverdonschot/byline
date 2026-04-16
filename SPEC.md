@@ -173,15 +173,17 @@ Byline → window.webln (Alby) → author's lnurl server → Lightning Network
 | Layer | Choice |
 |-------|--------|
 | Frontend build | Vite + React + TypeScript |
+| Frontend CSS | CSS Modules (per-component `.module.css` files) |
 | Backend | Node.js + Express (REST API) |
 | Nostr lib | nostr-tools (browser + Node, well-maintained) |
 | ORM | Drizzle ORM (type-safe, lightweight) |
 | Database | Postgres 16 |
-| Deployment | Docker Compose (self-hosted VPS) |
+| Cache | Redis 7 (hot-feed cache, rate limiting) |
+| Deployment | Docker Compose (3 containers: app + postgres + redis) |
 
 **Why Node.js over Deno:** Far larger library ecosystem, easier troubleshooting, familiar patterns, same team that builds Vite (Vitest, etc.). Express is minimal and well-understood.
 
-**Architecture:** Browser queries relays directly for article content (nostr-tools). Backend handles: session management, Postgres caching/writes, publishing to relays, zap receipt webhooks.
+**Architecture:** Browser queries relays directly for article content (nostr-tools). Backend handles: session management, Postgres writes, Redis caching, publishing to relays, zap receipt webhooks. Redis provides hot-feed cache and rate limiting. Postgres is the persistent store.
 
 ### Postgres Schema (What Nostr Can't Store)
 
@@ -235,7 +237,7 @@ CREATE TABLE config (
 
 ## 8. Docker Self-Hosting
 
-### Docker Compose (for self-hosters)
+### Docker Compose (3 containers: app + postgres + redis)
 
 ```yaml
 services:
@@ -243,19 +245,22 @@ services:
     image: longform/app
     ports: ["3000:3000"]
     env_file: .env
-    depends_on: [db]
+    depends_on: [db, redis]
+    restart: on-failure
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: longform
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes: [pgdata:/var/lib/postgresql/data]
-  relay:
-    image: longform/relay  # nostr-rs-relay
-    ports: ["8080:8080"]
-    volumes: [/data/relay:/data]
+    restart: on-failure
+  redis:
+    image: redis:7-alpine
+    volumes: [redisdata:/data]
+    restart: on-failure
 volumes:
   pgdata:
+  redisdata:
 ```
 
 ### Configuration (.env)
@@ -267,6 +272,9 @@ LONGFORM_TAG_PREFIX=longform
 
 # Database
 DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/longform
+
+# Redis cache
+REDIS_URL=redis://redis:6379
 
 # Relay (optional — for self-hosted relay)
 RELAY_URL=wss://relay.yourdomain.com

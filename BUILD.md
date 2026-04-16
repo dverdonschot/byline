@@ -8,33 +8,58 @@
 
 ## Design Language
 
-### Colors
+### Colors — Gulf Blue Palette
+
+Design principle: Gulf Blue anchors the platform identity; orange is reserved for Lightning-specific moments (zap button, ⚡ icon). Light mode first, dark mode as toggle.
 
 ```css
+/* Light mode */
 :root {
   /* Backgrounds */
-  --color-bg:           #faf9f7;   /* warm off-white, main background */
+  --color-bg:           #f8faf9;   /* cool off-white, slight teal tint */
   --color-surface:      #ffffff;    /* cards, modals */
-  --color-surface-2:    #f5f3f0;   /* input backgrounds, code blocks */
+  --color-surface-2:    #eef4f3;   /* teal-tinted secondary surface */
 
   /* Borders */
-  --color-border:       #e8e4df;    /* subtle warm gray borders */
-  --color-border-dark:  #d4cfc9;    /* stronger borders, dividers */
+  --color-border:       #d4e3e0;    /* teal-tinted borders */
+  --color-border-dark:  #b8cfc9;    /* stronger borders, dividers */
 
   /* Text */
-  --color-text:         #1a1a1a;   /* primary text */
-  --color-text-muted:   #6b6b6b;   /* secondary text, metadata */
-  --color-text-faint:   #9a9a9a;    /* placeholders, timestamps */
+  --color-text:         #1a1e1d;   /* near-black with teal undertone */
+  --color-text-muted:   #5a6b67;   /* secondary text, metadata */
+  --color-text-faint:   #8a9e99;    /* placeholders, timestamps */
 
-  /* Accent — warm amber (Lightning color) */
-  --color-accent:       #d4a574;   /* primary accent, links, CTA buttons */
-  --color-accent-dark:  #b8956a;   /* hover state */
-  --color-accent-light: #ede0d4;   /* accent backgrounds, tag chips */
+  /* Accent — Gulf Blue (platform identity) */
+  --color-accent:       #008891;   /* primary accent, links, CTA buttons */
+  --color-accent-dark:  #006f78;   /* hover state */
+  --color-accent-light: #cce5e3;   /* accent backgrounds, tag chips */
+  --color-accent-glow:  #00b0c1;   /* brighter hover states */
+
+  /* Lightning — orange reserved for payment moments */
+  --color-lightning:     #f59e0b;   /* zap button, ⚡ icon */
+  --color-lightning-dark: #d97706;
+  --color-lightning-light: #fef3c7;
 
   /* Semantic */
-  --color-success:      #4a9e6b;   /* published, connected */
-  --color-error:        #c45c5c;   /* errors, delete */
-  --color-warning:       #c49a4a;   /* warnings */
+  --color-success:      #0d9488;   /* teal-success */
+  --color-error:        #dc2626;   /* errors, delete */
+  --color-warning:       #d97706;   /* warnings */
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --color-bg:           #0d1a1a;   /* very dark teal-black */
+  --color-surface:      #152323;
+  --color-surface-2:    #1d3030;
+  --color-border:       #2a4240;
+  --color-border-dark:  #3a5854;
+  --color-text:         #e8eeed;
+  --color-text-muted:   #8aada8;
+  --color-text-faint:   #5a7a76;
+  --color-accent:       #00b0c1;   /* Gulf Blue brighter on dark */
+  --color-accent-dark:  #008891;
+  --color-accent-light: #1a3d3d;
+  --color-accent-glow:  #00d4e6;   /* vivid hover glow */
 }
 ```
 
@@ -618,7 +643,7 @@ wss://relay.nostr.bg
 
 ### Article Cache Strategy
 
-**Architecture: Browser queries relays directly. Postgres caches the home feed only.**
+**Architecture: Browser queries relays directly. Redis + Postgres cache the home feed.**
 
 ```
 Article page read (/story/:naddr):
@@ -628,15 +653,15 @@ Article page read (/story/:naddr):
   → NOT routed through Postgres (direct Nostr, no cache)
 
 Home page read (/):
-  → Backend has warm cache (Postgres articles table)
-  → Returns cached feed instantly (fast, no relay latency)
+  → Redis cache hit → return instantly
+  → Redis cache miss → Postgres query → populate Redis cache
   → Cache warmed by cron every 5 min
 
 Write path (publish):
   User publishes → sign event → POST to backend
     → Backend verifies signature
     → Backend publishes to relays
-    → Backend writes to Postgres (home feed cache)
+    → Backend writes to Postgres + invalidates Redis cache
     → Return naddr to frontend
 
 Update path (edit):
@@ -646,12 +671,19 @@ Delete path:
   User deletes → sign kind 5 event → POST to backend
     → Backend publishes kind 5 to relays
     → Backend marks article as deleted in Postgres (soft delete)
+    → Invalidates Redis cache
     → Removed from home feed
 
 Cache warming (cron, every 5 min):
   Backend queries relays for recent kind 30023 events tagged longform
   → Upsert into Postgres articles table
+  → Invalidate Redis cache for home feed
   → Home page always has fresh feed without readers hitting relays
+
+Redis role:
+  - Hot feed cache (sorted set of recent article IDs by pubdate)
+  - Relay response deduplication
+  - Rate limiting per IP/npub
 ```
 
 ---
@@ -803,10 +835,10 @@ interface Toast {
 
 ### Phase 0: Foundation
 - [ ] Initialize Vite + React + TypeScript project
-- [ ] CSS variables + global styles (design tokens)
+- [ ] CSS Modules setup + global design tokens (Gulf Blue palette)
 - [ ] TypeScript types for all Nostr events and API
-- [ ] Docker Compose: app + postgres (relay-free)
-- [ ] Verify: app builds, runs in Docker, connects to Postgres
+- [ ] Docker Compose: app + postgres + redis (3 containers)
+- [ ] Verify: app builds, runs in Docker, connects to Postgres + Redis
 
 ### Phase 1: Read
 - [ ] NavBar + Footer
