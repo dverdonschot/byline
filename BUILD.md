@@ -131,12 +131,12 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 | ID | Feature | Description | Priority |
 |----|---------|-------------|----------|
 | R1 | **Read article** | Render kind 30023 markdown as beautiful article | Must |
-| R2 | **Browse home** | Fresh feed of recent stories tagged `longform` | Must |
+| R2 | **Browse home** | Public feed: all `longform` articles sorted by recency + engagement | Must |
 | R3 | **Filter by tag** | See all stories under a specific tag | Must |
 | R4 | **Filter by author** | See all stories by a specific npub | Must |
 | R5 | **Search** | Full-text search across article titles and content | Must |
 | R6 | **Author profile** | Name, bio, avatar, Lightning address, story list | Must |
-| R7 | **Zap article** | Send Lightning zap to author from article page | Must |
+| R7 | **Zap article** | Send Lightning zap to author from article page (login required) | Must |
 | R8 | **Zap count** | Show total sats received per article | Must |
 | R9 | **Zap count (author)** | Show total sats received across all articles | Should |
 | R10 | **Article metadata** | Show published date, last updated, word count, read time | Must |
@@ -145,6 +145,13 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 | R13 | **Share article** | Copy link, copy naddr, share via Nostr | Should |
 | R14 | **Article replies** | Show kind 1111 replies to an article | Could |
 | R15 | **Dark mode** | System-following dark mode (optional, post-MVP) | Could |
+| R16 | **Following feed** | Personal feed from authors in Nostr kind 3 contact list | Must |
+| R17 | **Follow author** | Follow button on author profile → publishes to kind 3 | Must |
+| R18 | **Unfollow author** | Remove from kind 3 contact list | Must |
+| R19 | **Manage follows** | View all Nostr follows, search, bulk unfollow | Must |
+| R20 | **Import follows on login** | On NIP-07 login: auto-import existing kind 3 list | Must |
+| R21 | **Trending authors** | Authors sorted by total zap count (last 7 days) | Should |
+| R22 | **Zap login gate** | Zap button shows "Login to zap" if not authenticated | Must |
 
 ### Writer Features
 
@@ -195,14 +202,16 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 
 | Route | Page | Auth | Description |
 |-------|------|------|-------------|
-| `/` | **Home** | No | Featured + recent stories |
+| `/` | **Home** | No | Public feed: featured + recent |
 | `/story/:naddr` | **Article** | No | Full article view |
 | `/story/:naddr/edit` | **Edit** | Yes (author) | Edit article |
-| `/filter` | **Filter** | No | Browse and search |
-| `/author/:npub` | **Author Profile** | No | Author's profile + story list |
+| `/filter` | **Explore** | No | Tag browse, search, trending authors |
+| `/author/:npub` | **Author Profile** | No | Profile + stories + follow button |
 | `/login` | **Login** | No | Connect Nostr identity |
+| `/following` | **Following Feed** | Yes | Personal feed from followed authors |
 | `/write` | **Write** | Yes | New article editor |
-| `/settings` | **Settings** | Yes | Account settings |
+| `/settings` | **Settings** | Yes | Profile, Lightning, key management |
+| `/settings/following` | **Following** | Yes | Manage Nostr follow list |
 | `/moderation` | **Mod Queue** | Yes (admin) | Reported articles |
 | `/sitemap.xml` | **Sitemap** | No | SEO sitemap |
 
@@ -510,10 +519,17 @@ Clickable tag chip.
 ### NavBar
 Top navigation bar.
 
-**Content:**
-- Logo (left): "Longform" wordmark
+**Content (not logged in):**
+- Logo (left): "Longform" wordmark → links to `/`
 - Search (center): search input, expands on focus
-- Actions (right): [Write] button (if logged in), Login button (if not), Avatar (if logged in)
+- Actions (right): [Explore] [Login]
+
+**Content (logged in):**
+- Logo (left): "Longform" wordmark → links to `/following`
+- Search (center): search input, expands on focus
+- Actions (right): [Explore] [Write] [Avatar ▼]
+  - Avatar dropdown: [Profile] [Following] [Settings] [Disconnect]
+
 **States:** default, scrolled (shadow appears), mobile (hamburger menu)
 
 ### Footer
