@@ -149,7 +149,7 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 | R17 | **Follow author** | Follow button on author profile → publishes to kind 3 | Must |
 | R18 | **Unfollow author** | Remove from kind 3 contact list | Must |
 | R19 | **Manage follows** | View all Nostr follows, search, bulk unfollow | Must |
-| R20 | **Import follows on login** | On NIP-07 login: auto-import existing kind 3 list | Must |
+| R20 | **Import follows on login** | On login: auto-import existing kind 3 contact list from relays | Must |
 | R21 | **Trending authors** | Authors sorted by total zap count (last 7 days) | Should |
 | R22 | **Zap login gate** | Zap button shows "Login to zap" if not authenticated | Must |
 
@@ -159,24 +159,25 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 |----|---------|-------------|----------|
 | W1 | **Login with Alby** | NIP-07 via Alby extension — instant login | Must |
 | W2 | **Login with Nostr key** | In-browser keygen + localStorage, with backup warning | Must |
-| W3 | **Fallback: nos2x** | If no Alby, use nos2x extension NIP-07 | Must |
-| W4 | **Write story** | Markdown editor with live preview toggle | Must |
-| W5 | **Add title** | Set article title (becomes `title` tag in event) | Must |
-| W6 | **Add tags** | Add/remove `t` tags (topic labels) | Must |
-| W7 | **Add summary** | Set article summary (becomes `summary` tag) | Should |
-| W8 | **Add cover image** | Paste URL or upload → stored as `image` tag | Should |
-| W9 | **Draft save** | Auto-save draft to localStorage while writing | Must |
-| W10 | **Publish** | Sign kind 30023 event, push to relays | Must |
-| W11 | **Edit story** | Update kind 30023 (same `d` tag, new `created_at`) | Must |
-| W12 | **Delete story** | Send kind 5 delete event | Must |
-| W13 | **Unpublish** | Delete + remove from public feeds | Must |
-| W14 | **Import story** | Paste markdown content → create kind 30023 | Must |
-| W15 | **Profile editor** | Edit display name, bio, avatar URL | Must |
-| W16 | **Lightning address** | Set lud16 field for zaps in profile | Must |
-| W17 | **Preview mode** | Toggle between editor and rendered preview | Must |
-| W18 | **Word count / read time** | Live word count and estimated read time while writing | Should |
-| W19 | **Schedule publish** | Set future publish date (publish then) | Could |
-| W20 | **Series / drafts** | Manage multiple drafts, publish one at a time | Could |
+| W3 | **Login with extension** | nos2x or any NIP-07 browser extension | Must |
+| W4 | **Login with NIP-46** | Delegated signing via Nostr Wallet Connect (nsec.app, Alby signer, etc.) | Should |
+| W5 | **Write story** | Markdown editor with live preview toggle | Must |
+| W6 | **Add title** | Set article title (becomes `title` tag in event) | Must |
+| W7 | **Add tags** | Add/remove `t` tags (topic labels) | Must |
+| W8 | **Add summary** | Set article summary (becomes `summary` tag) | Should |
+| W9 | **Add cover image** | Paste URL or upload → stored as `image` tag | Should |
+| W10 | **Draft save** | Auto-save draft to localStorage while writing | Must |
+| W11 | **Publish** | Sign kind 30023 event, push to relays | Must |
+| W12 | **Edit story** | Update kind 30023 (same `d` tag, new `created_at`) | Must |
+| W13 | **Delete story** | Send kind 5 delete event | Must |
+| W14 | **Unpublish** | Delete + remove from public feeds | Must |
+| W15 | **Import story** | Paste markdown content → create kind 30023 | Must |
+| W16 | **Profile editor** | Edit display name, bio, avatar URL | Must |
+| W17 | **Lightning address** | Set lud16 field for zaps in profile | Must |
+| W18 | **Preview mode** | Toggle between editor and rendered preview | Must |
+| W19 | **Word count / read time** | Live word count and estimated read time while writing | Should |
+| W20 | **Schedule publish** | Set future publish date (publish then) | Could |
+| W21 | **Series / drafts** | Manage multiple drafts, publish one at a time | Could |
 
 ### Platform / Admin Features
 

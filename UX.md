@@ -27,7 +27,8 @@ Most users are Readers who will eventually become Writers.
 
 | Route | Page | Auth | Description |
 |-------|------|------|-------------|
-| `/` | **Home** | No | Public feed: featured + recent |
+| `/` | **Public Feed** | No | Always the public feed — same for everyone |
+| `/following` | **Following Feed** | Yes | Personal feed from Nostr kind 3 follows |
 | `/story/:naddr` | **Article** | No | Full article + zap |
 | `/story/:naddr/edit` | **Edit** | Yes (author) | Edit article |
 | `/filter` | **Explore** | No | Tag browse, search, author search |
@@ -35,9 +36,15 @@ Most users are Readers who will eventually become Writers.
 | `/write` | **Write** | Yes | New article editor |
 | `/settings` | **Settings** | Yes | Profile, Lightning, key management |
 | `/author/:npub` | **Author Profile** | No | Public profile + story list |
-| `/following` | **Following Feed** | Yes | Articles from followed authors |
+
 | `/settings/following` | **Following** | Yes | Manage Nostr follow list |
 | `/moderation` | **Mod Queue** | Yes (admin) | Reported articles |
+
+**Routing rules:**
+- `/` is always the public feed — no auth state affects it
+- `/following` redirects to login if not authenticated
+- Logo always links to `/`
+- After login: redirect to `/following` (personal feed)
 
 ---
 
@@ -48,14 +55,14 @@ Most users are Readers who will eventually become Writers.
                         │   /login    │ ←── Click "Login" (any page)
                         └──────┬──────┘
                                │
-              ┌────────────────┼────────────────┐
-              │                │                │
-    ┌─────────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
-    │  NIP-07 + Alby │  │ In-browser  │  │   nos2x     │
-    │  (instant)      │  │ keygen      │  │  extension  │
-    └────────┬────────┘  └──────┬──────┘  └──────┬──────┘
-             │                 │                │
-             └────────────────▼────────────────┘
+              ┌────────────────┼────────────────┼────────────────┐
+              │                │                │                │
+    ┌─────────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
+    │  NIP-07 + Alby │  │ In-browser  │  │   nos2x     │  │   NIP-46     │
+    │  (extension)   │  │ keygen      │  │  extension  │  │ delegation   │
+    └────────┬────────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+             │                 │                │                │
+             └────────────────▼────────────────▼────────────────┘
                             │
                     Logged in as Reader
                             │
@@ -160,6 +167,25 @@ For users without an extension. They provide their **hex private key**.
 **Critical UX:**
 - The warning must be impossible to dismiss without reading
 - "Generate keypair" clearly labeled, no surprises
+
+### Path C: NIP-46 Delegated Signing
+
+For users who want their key on a different device (e.g., key on phone, browsing on desktop). Uses NIP-46 Nostr Wallet Connect.
+
+```
+1.  Click "Login" → "Use Nostr Connect"
+2.  User pastes their nsec (from their mobile wallet) OR
+    scans QR code with their Nostr signer app
+3.  Longform establishes NIP-46 connection to the delegating signer
+4.  Signing requests are delegated — private key never touches Longform
+5.  Redirect to /following (same as Path A)
+```
+
+**NIP-46 note:** NIP-46 is the Nostr standard for delegated signing. Compatible with Nsec.app, Alby (as signer), and most mobile Nostr wallets. We implement the `connect` flow per NIP-46. Delegated signing means Longform can publish on behalf of the user without ever holding their private key.
+
+### After Login (all paths)
+
+User lands on `/following` — their personal feed from followed authors.
 - After login: persistent banner until they download backup
 
 ### After Login (both paths)
