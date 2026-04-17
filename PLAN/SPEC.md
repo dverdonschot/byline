@@ -1,4 +1,4 @@
-# Longform — Technical Specification
+# Byline — Technical Specification
 
 **Version:** 0.2-draft
 **Last updated:** 2026-04-13
@@ -14,10 +14,12 @@
 
 **One-liner:** Long-form stories on Nostr, with Lightning-powered appreciation.
 
-**Confirmed (2026-04-13):**
-- Name: **Longform** ✅
+**Confirmed (2026-04-17):**
+- Name: **Byline** ✅ (formerly Longform — updated 2026-04-17)
 - Logo direction: **Direction 3** — single pen stroke with fork, charcoal on white, pen nib + signal pulse combined ✅
-- Name choice reason: descriptive, no-nonsense, fits Nostr landscape
+- Backend: **None in MVP** — relay-first, browser queries public relays via nostr-tools
+- Database: **None in MVP** — all data lives on Nostr relays
+- Own relay: **Phase 2 goal** — canonical story store, replaces public relays when running
 
 **Domain:** `longform.now` — reserved for future purchase. Development uses Tailscale private URL (e.g., `https://longform[your-tail].ts.net`). Public domain purchase deferred until POC is ready to show.
 

@@ -1,4 +1,4 @@
-# Longform — UX Deep Dive
+# Byline — UX Deep Dive
 
 **Status:** Draft — for Dennis review
 **Date:** 2026-04-16

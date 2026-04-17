@@ -65,7 +65,7 @@
 - [ ] Confirmation modal: shows title, tags, summary before publishing
 - [ ] Sign kind 30023 event via NIP-07 (`window.nostr.signEvent()`)
 - [ ] Publish to 4 relays in parallel, wait for 2 confirmations
-- [ ] On success: POST to backend (write to Postgres cache), redirect to `/story/:naddr`
+- [ ] On success: redirect to `/story/:naddr`
 - [ ] On error: show relay errors, allow retry
 - [ ] "published" toast on success
 
@@ -80,7 +80,7 @@
 - [ ] Delete button on article page (only for author)
 - [ ] Confirmation modal: "This will remove from Byline. Nostr cannot un-delete."
 - [ ] Sign kind 5 event via NIP-07
-- [ ] POST to backend: mark soft-deleted in Postgres, invalidate cache
+- [ ] On success: redirect to `/following`
 - [ ] Redirect to `/following` after delete
 
 ### 2.10 — Settings Page (`/settings`)
@@ -115,4 +115,4 @@
 - [ ] Can delete an article (kind 5)
 - [ ] Can update profile (name, bio, avatar, Lightning address)
 - [ ] Can manage follow list from within Byline
-- [ ] All data persists correctly on Nostr relays (verify with another Nostr client)
+- [ ] All data persists correctly on Nostr relays (no backend needed)

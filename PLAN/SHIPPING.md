@@ -12,12 +12,12 @@ Run this before each commit, PR, and deployment.
 
 ### Phase 0 — Foundation
 - [ ] Vite + React + TypeScript project builds
-- [ ] Docker Compose starts app + postgres
-- [ ] Database migrations run on startup
+- [ ] Docker Compose starts app (single nginx container, no backend)
+- [ ] No database in MVP (relay-first architecture)
 - [ ] `pnpm test` green
 
 ### Phase 1 — Read
-- [ ] Home page loads from Postgres cache
+- [ ] Home page loads from public Nostr relays via nostr-tools
 - [ ] Article page loads from relays directly
 - [ ] Filter page filters by tag and author
 - [ ] Author profile shows name, bio, stories
@@ -43,7 +43,7 @@ Run this before each commit, PR, and deployment.
 ### Pre-Production
 - [ ] `.env` is complete (use `.env.example` as template)
 - [ ] Relay list is configurable, not hardcoded
-- [ ] Postgres connection uses env vars
+- [ ] No Postgres in MVP
 - [ ] HTTPS works (Tailscale or Cloudflare tunnel)
 - [ ] Docker healthchecks pass
 - [ ] No CORS errors from relay queries

@@ -1,8 +1,8 @@
-# Longform — Complete Build Specification
+# Byline — Complete Build Specification
 
-**Version:** 0.4-draft
-**Last updated:** 2026-04-13
-**Status:** Planning — frontend architecture confirmed (direct browser relay queries)
+**Version:** 0.5-draft
+**Last updated:** 2026-04-17
+**Status:** Planning — relay-first architecture confirmed (no backend in MVP)
 
 ---
 
@@ -208,9 +208,9 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 
 | ID | Feature | Description | Priority |
 |----|---------|-------------|----------|
-| P1 | **Article cache** | Postgres stores latest version of articles for fast reads | Must |
-| P2 | **Cache invalidation** | When kind 30023 updates on relay, refresh Postgres | Must |
-| P3 | **Cache warming** | Backend polls relays for new `longform` tagged content | Must |
+| P1 | **Article cache** | Postgres stores latest version of articles for fast reads | Deferred (Phase 2+) |
+| P2 | **Cache invalidation** | When kind 30023 updates on relay, refresh Postgres | Deferred (Phase 2+) |
+| P3 | **Cache warming** | Backend polls relays for new `longform` tagged content | Deferred (Phase 2+) |
 | P4 | **Featured page** | Curated selection shown on home page | Should |
 | P5 | **AI moderation** | AI reads article content before featuring | Should |
 | P6 | **Report article** | Reader submits report → stored in mod queue | Should |
@@ -269,7 +269,7 @@ Every feature the platform needs. Divided into Reader, Writer, and Platform.
 ```
 
 **Components on page:** NavBar, HeroSection, FeaturedSection, StoryCard × N, Footer
-**Data:** fetches recent kind 30023 events tagged `longform` from Postgres cache (or relays if cache empty)
+**Data:** fetches recent kind 30023 events tagged `longform` from relays in browser via nostr-tools
 
 ---
 
@@ -641,49 +641,25 @@ wss://relay.nostr.bg
 6. Frontend watches for 9735 events with matching e tag → updates zap count
 ```
 
-### Article Cache Strategy
+### Article Cache Strategy — DEFERRED (no backend in MVP)
 
-**Architecture: Browser queries relays directly. Redis + Postgres cache the home feed.**
+No Postgres/Redis in MVP. All reads go directly to relays via nostr-tools. Write path is direct browser-to-relay (Phase 1+). When own relay is added (Phase 2+), it becomes the canonical story store with optional Postgres cache warming.
 
 ```
 Article page read (/story/:naddr):
   → Browser decodes naddr → nostr-tools queries 4 relays in parallel
-  → First valid kind 30023 response wins
-  → Rendered immediately (always fresh)
-  → NOT routed through Postgres (direct Nostr, no cache)
+  → First valid kind 30023 response wins → rendered immediately
 
 Home page read (/):
-  → Redis cache hit → return instantly
-  → Redis cache miss → Postgres query → populate Redis cache
-  → Cache warmed by cron every 5 min
+  → Browser queries 4 relays in parallel for kind 30023 + 'longform' tag
+  → First valid response wins
 
-Write path (publish):
-  User publishes → sign event → POST to backend
-    → Backend verifies signature
-    → Backend publishes to relays
-    → Backend writes to Postgres + invalidates Redis cache
-    → Return naddr to frontend
+Write path (Phase 1+):
+  → User writes → signs kind 30023 event via NIP-07
+  → nostr-tools publishes directly to relays (no backend)
 
-Update path (edit):
-  Same as write, same d-tag, new created_at
-
-Delete path:
-  User deletes → sign kind 5 event → POST to backend
-    → Backend publishes kind 5 to relays
-    → Backend marks article as deleted in Postgres (soft delete)
-    → Invalidates Redis cache
-    → Removed from home feed
-
-Cache warming (cron, every 5 min):
-  Backend queries relays for recent kind 30023 events tagged longform
-  → Upsert into Postgres articles table
-  → Invalidate Redis cache for home feed
-  → Home page always has fresh feed without readers hitting relays
-
-Redis role:
-  - Hot feed cache (sorted set of recent article IDs by pubdate)
-  - Relay response deduplication
-  - Rate limiting per IP/npub
+Delete path (Phase 1+):
+  → User deletes → signs kind 5 event → publishes directly to relays
 ```
 
 ---
@@ -746,16 +722,6 @@ CREATE TABLE profiles (
   updated_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Sessions (web sessions)
-CREATE TABLE sessions (
-  id          TEXT PRIMARY KEY,
-  npub        TEXT NOT NULL,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  last_seen   TIMESTAMPTZ DEFAULT NOW(),
-  ext_auth    TEXT,                     -- 'alby' | 'nostr-key' | 'nos2x'
-  FOREIGN KEY (npub) REFERENCES profiles(npub)
-);
-
 -- Moderation queue
 CREATE TABLE mod_queue (
   id          SERIAL PRIMARY KEY,
@@ -771,17 +737,15 @@ CREATE TABLE mod_queue (
 CREATE TABLE featured (
   article_id  TEXT PRIMARY KEY REFERENCES articles(id),
   featured_at TIMESTAMPTZ DEFAULT NOW(),
-  note       TEXT                              -- why it was featured
-);
-
--- App config (key-value store)
-CREATE TABLE config (
-  key   TEXT PRIMARY KEY,
-  value JSONB
+  note       TEXT
 );
 ```
 
-### API Endpoints
+### API Endpoints — Deferred to Phase 2+
+
+No backend in MVP. All reads go through nostr-tools directly to relays.
+
+When own relay/backend is added:
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -793,11 +757,8 @@ CREATE TABLE config (
 | PUT | `/api/profile` | Yes | Update own profile |
 | GET | `/api/zaps/:articleId` | No | Get zap count for article |
 | GET | `/api/featured` | No | Get featured articles |
-| POST | `/api/zaps` | No | Receive zap receipt webhook (optional) |
 | GET | `/api/me` | Yes | Get current session info |
-| POST | `/api/session` | No | Create session (from NIP-07 signed event) |
 | DELETE | `/api/session` | Yes | Destroy session |
-| GET | `/api/relays` | No | Get configured relay list |
 | POST | `/api/report` | No | Report an article |
 
 ### Frontend State (React Context)
@@ -836,9 +797,9 @@ interface Toast {
 ### Phase 0: Foundation
 - [ ] Initialize Vite + React + TypeScript project
 - [ ] CSS Modules setup + global design tokens (Gulf Blue palette)
-- [ ] TypeScript types for all Nostr events and API
-- [ ] Docker Compose: app + postgres + redis (3 containers)
-- [ ] Verify: app builds, runs in Docker, connects to Postgres + Redis
+- [ ] TypeScript types for all Nostr event kinds
+- [ ] Docker: single nginx container (no backend in MVP)
+- [ ] Verify: app builds, Docker image serves on port 3000
 
 ### Phase 1: Read
 - [ ] NavBar + Footer
@@ -849,7 +810,7 @@ interface Toast {
 - [ ] Author profile page (hardcoded data)
 - [ ] MarkdownRenderer component
 - [ ] Relay query (nostr-tools, browser → relays)
-- [ ] Home page → live data from Postgres
+- [ ] Home page → live data from Nostr relays (nostr-tools)
 - [ ] Article page → live data from Nostr
 - [ ] Filter page → live data
 - [ ] Author profile → live data
