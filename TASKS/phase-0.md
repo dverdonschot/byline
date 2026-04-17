@@ -81,6 +81,11 @@
 - [ ] Articles load from public relays (mock data if no extension — until Phase 1)
 - [ ] GitHub Actions CI passes (builds Docker image)
 
+### 0.9 — Security & Operational Stretch Goals (Optional)
+- [ ] Implement Content Security Policy (CSP) headers — Add security headers to prevent XSS and data injection attacks
+- [ ] Integrate dependency vulnerability scanning — Add `npm audit` to CI pipeline and pre-commit hooks to catch vulnerable dependencies
+- [ ] Add structured logging and error tracking — Implement winston/pino logging with levels and integrate with Sentry or similar for error tracking
+
 ---
 
 ## Exit Criteria (Phase 1 Unlocks When)

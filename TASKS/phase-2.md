@@ -106,6 +106,11 @@
 - [ ] `DELETE /api/session` — destroy session
 - [ ] `GET /api/me` — return current session info
 
+### 2.13 — Security & Operational Stretch Goals (Optional)
+- [ ] Implement secure session management — Use HttpOnly, Secure cookies with CSRF tokens or JWT with proper expiration and rotation
+- [ ] Add comprehensive audit logging for write operations — Log all publish/edit/delete/profile update actions with user ID, timestamp, and IP for forensic analysis
+- [ ] Implement request signing verification — Validate Nostr event signatures on all write endpoints to prevent spoofing and tampering
+
 ---
 
 ## Exit Criteria (Phase 3 Unlocks When)

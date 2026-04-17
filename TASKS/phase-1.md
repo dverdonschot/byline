@@ -92,6 +92,11 @@
 - [ ] `GET /api/relays` — return configured relay list
 - [ ] Wire home page to call backend API (which reads from Postgres cache)
 
+### 1.13 — Security & Operational Stretch Goals (Optional)
+- [ ] Implement rate limiting on API endpoints — Prevent abuse and DoS attacks by limiting requests per IP
+- [ ] Add request/response logging for audit trails — Log API requests with timestamps, IPs, and user agents for security monitoring
+- [ ] Implement input validation and sanitization — Validate all API inputs to prevent injection attacks and XSS
+
 ---
 
 ## Exit Criteria (Phase 2 Unlocks When)
