@@ -4,11 +4,20 @@
 **Started:** 2026-04-17
 **Completed:** ⏳
 
+## Decisions (Locked)
+
+- **Name:** Byline ✅
+- **Backend:** None in Phase 0. Frontend queries relays directly with nostr-tools.
+- **Database:** None in Phase 0. User preferences (pubkey → settings) deferred until real need.
+- **Own relay:** Phase goal. Public relays first. Nostr-tools for all relay communication.
+- **Docker:** Dev runs Vite standalone. Docker Compose for production image only.
+- **Logo:** Deferred to Phase 4.
+
 ## Prerequisites
 
-- [ ] Repo created and pushed to GitHub
-- [ ] `PLAN/` folder contains SPEC.md, UX.md, BUILD.md, etc.
-- [ ] `TASKS/` folder contains this phase file
+- [ ] Repo created and pushed to GitHub ✅
+- [ ] `PLAN/` folder contains SPEC.md, UX.md, BUILD.md, etc. ✅
+- [ ] `TASKS/` folder contains this phase file ✅
 
 ---
 
@@ -45,55 +54,39 @@
 - [ ] Create `src/types/index.ts` — barrel export
 - [ ] Verify: `tsc --noEmit` passes with zero errors
 
-### 0.5 — Express Backend Scaffold
-- [ ] Create `server/` directory with `package.json`
-- [ ] Install: express, cors, dotenv, drizzle-orm, pg, redis, nostr-tools
-- [ ] Create `server/src/index.ts` — minimal Express app that responds "ok" on `/health`
-- [ ] Create `server/src/db/schema.ts` — Drizzle schema matching SPEC.md Postgres schema
-- [ ] Create `server/src/db/index.ts` — DB connection (reads DATABASE_URL from env)
-- [ ] Create `server/src/redis.ts` — Redis connection (reads REDIS_URL from env)
-- [ ] Create `server/.env.example` with all required vars (DATABASE_URL, REDIS_URL, etc.)
-- [ ] Verify: `tsc --noEmit` passes in server/
+### 0.5 — Nostr Relay Layer (nostr-tools)
+- [ ] Install `nostr-tools` and `nostr-hooks` (or write minimal custom hooks)
+- [ ] Create `src/lib/relayPool.ts` — manages multiple relay connections, handles reconnection
+- [ ] Create `src/lib/kinds.ts` — constants for all Nostr kind numbers used by Byline
+- [ ] Create `src/hooks/useNostr.ts` — `useNostr()` hook: connects extension, returns pubkey/nip04
+- [ ] Create `src/hooks/useArticles.ts` — fetches and caches kind 30023 articles from relays
+- [ ] Verify: connect to 4 public relays, fetch one article, render it on page
 
-### 0.6 — Docker Compose (3 Containers)
-- [ ] Create `docker/docker-compose.yml` — app + postgres:16-alpine + redis:7-alpine
-- [ ] Create `Dockerfile` for app (builds Vite app, runs Express server in production)
-- [ ] Create `docker/.env` (DATABASE_URL pointing to `db:5432`, REDIS_URL pointing to `redis:6379`)
-- [ ] Add healthcheck to postgres service
-- [ ] Add healthcheck to redis service
-- [ ] Add depends_on + condition: service_healthy to app container
-- [ ] Add `restart: on-failure` to all services
-- [ ] Volume mounts: pgdata, redisdata
-- [ ] Verify: `docker compose config` passes with zero errors
+### 0.6 — Docker Production Build
+- [ ] Create `Dockerfile` — builds Vite app, serves static files with nginx (no backend)
+- [ ] Create `docker/docker-compose.yml` — single `app` service, no postgres/redis in dev
+- [ ] Add `docker/.env.example` documenting required env vars (none for MVP)
+- [ ] Verify: `docker build` produces image, `docker compose up` serves app on port 3000
+- [ ] Add healthcheck to app container
 
-### 0.7 — Drizzle Migrations
-- [ ] Add `drizzle-kit` config to server (`drizzle.config.ts`)
-- [ ] Write initial migration for all tables in SPEC.md schema
-- [ ] Create `docker/init.sql` — runs on postgres first start (creates extensions if needed)
-- [ ] Add migration runner to server startup (on boot, run pending migrations)
-- [ ] Verify: containers start clean with `docker compose down -v && docker compose up -d`
-
-### 0.8 — Dev Workflow (Hot Reload)
-- [ ] Add `concurrently` to root `package.json` to run Vite + Express together in dev
-- [ ] Root `npm run dev` starts: Vite on :5173 + Express on :3000 with hot reload
+### 0.7 — Dev Workflow
+- [ ] `npm run dev` starts Vite on :5173 with hot reload (no backend needed)
 - [ ] Add `npm run docker:up` and `npm run docker:down` scripts
-- [ ] Add `npm run db:migrate` script
-- [ ] Write `CONTRIBUTING.md` documenting the dev workflow (2 commands to get running)
+- [ ] Write `CONTRIBUTING.md` documenting the dev workflow
 
-### 0.9 — End-to-End Verification
+### 0.8 — End-to-End Verification
 - [ ] App loads at `http://localhost:5173` — blank page with correct Gulf Blue background
-- [ ] `/health` endpoint returns 200 from running Express server
-- [ ] Postgres is reachable from Express (test with a simple query)
-- [ ] Redis is reachable from Express (test with PING)
-- [ ] Docker Compose starts all 3 containers and they report healthy
-- [ ] Push to GitHub — CI should build the Docker image successfully
+- [ ] Dark mode toggle works (switches `data-theme` on `<html>`)
+- [ ] Nostr extension connects and pubkey is detected
+- [ ] Articles load from public relays (mock data if no extension — until Phase 1)
+- [ ] GitHub Actions CI passes (builds Docker image)
 
 ---
 
 ## Exit Criteria (Phase 1 Unlocks When)
 
-- [ ] `npm run dev` works with hot reload
-- [ ] All 3 Docker containers start and are healthy
-- [ ] Database migrations run automatically on startup
-- [ ] `tsc --noEmit` passes in both `src/` and `server/`
-- [ ] GitHub Actions CI passes (builds Docker image)
+- [ ] `npm run dev` works with hot reload (no backend required)
+- [ ] Docker image builds and serves on port 3000
+- [ ] `tsc --noEmit` passes in `src/`
+- [ ] GitHub Actions CI passes
+- [ ] Relay pool connects to public relays and fetches kind 30023 events
